@@ -41,3 +41,38 @@
 }
 @media(prefers-reduced-motion:no-preference){#clientEditor.client-editor:not([hidden]){animation:editor-in .18s ease-out}}
 @keyframes editor-in{from{opacity:0;translate:0 8px}to{opacity:1;translate:0 0}}
+
+/* V1.3 — éditeur des documents et impression */
+.document-editor h3{margin:20px 0 10px}
+.table-wrap{width:100%;overflow-x:auto}
+.items-table{width:100%;border-collapse:collapse;min-width:560px}
+.items-table th,.items-table td{padding:7px;border-bottom:1px solid var(--line);text-align:left}
+.items-table th{font-size:.78rem;color:var(--muted)}
+.items-table input{min-width:70px;margin:0;padding:9px 10px;min-height:42px}
+.items-table td:first-child input{min-width:190px}
+.items-table button{background:#281010;border:1px solid #6b3333;color:#ffb2a8;border-radius:8px;padding:8px 10px}
+.totals-grid{align-items:end}
+.total-summary{display:grid;gap:6px;padding:12px 15px;border:1px solid var(--line);border-radius:12px;background:#0b0b0b}
+.total-summary span{display:flex;justify-content:space-between;gap:18px}
+.total-summary .grand-total{font-size:1.1rem;color:var(--gold);border-top:1px solid var(--line);padding-top:8px}
+.print-area{display:none}
+@media(max-width:680px){.document-editor .section-head{flex-direction:row;align-items:center}.document-editor .section-head .btn{width:auto}.totals-grid{grid-template-columns:1fr}}
+@media print{
+  body{background:#fff!important;color:#111!important}
+  body *{visibility:hidden!important}
+  #documentPrintArea,#documentPrintArea *{visibility:visible!important}
+  #documentPrintArea{display:block!important;position:absolute;inset:0;width:100%;padding:0;margin:0;background:#fff;color:#111;font:11pt/1.45 Arial,sans-serif}
+  .print-sheet{padding:12mm;max-width:190mm;margin:auto}
+  .print-head{display:flex;justify-content:space-between;gap:20px;border-bottom:3px solid #e0b900;padding-bottom:14px;margin-bottom:20px}
+  .print-brand{font-size:22pt;font-weight:900}.print-brand span{color:#c49e00}
+  .print-meta{text-align:right}
+  .print-parties{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:22px 0}
+  .print-sheet table{width:100%;border-collapse:collapse;margin:20px 0}
+  .print-sheet th,.print-sheet td{border-bottom:1px solid #ccc;padding:8px;text-align:left}
+  .print-sheet .num{text-align:right}
+  .print-totals{width:48%;margin-left:auto}
+  .print-totals div{display:flex;justify-content:space-between;padding:4px 0}
+  .print-totals .strong{font-weight:bold;font-size:14pt;border-top:2px solid #222;padding-top:9px}
+  .print-terms{margin-top:28px;white-space:pre-wrap}
+  .print-foot{margin-top:30px;padding-top:10px;border-top:1px solid #bbb;font-size:9pt;color:#555}
+}

@@ -31,23 +31,127 @@ async function loadDocuments(){
     const request=db.from('management_documents')
       .select('id,type,number,document_date,customer_id,subject,status,created_at')
       .order('created_at',{ascending:false});
-    const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('La requête Supabase met trop de temps à répondre. Vérifie Réseau > Fetch/XHR et réessaie.')),15000));
+    const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('La requête Supabase met trop de temps à répondre.')),15000));
     const {data,error}=await Promise.race([request,timeout]);
     if(error) throw error;
     const rows=data||[];
     box.innerHTML=rows.map(d=>{
       const c=customers.find(x=>x.id===d.customer_id);
       const typ={quote:'Devis',invoice:'Facture',intake:'Prise en charge'}[d.type]||d.type;
-      return `<div class="client-row"><div><strong>${esc(d.number)} · ${typ}</strong><small>${esc(c?c.first_name+' '+c.last_name:'Client non associé')} · ${esc(d.subject||'Sans objet')} · ${esc(d.status||'')}</small></div><span class="muted small">${esc(d.document_date||'')}</span></div>`;
+      return `<div class="client-row"><div><strong>${esc(d.number)} · ${typ}</strong><small>${esc(c?c.first_name+' '+c.last_name:'Client non associé')} · ${esc(d.subject||'Sans objet')} · ${esc(d.status||'')}</small></div><div class="actions"><span class="muted small">${esc(d.document_date||'')}</span><button type="button" data-open-document="${esc(d.id)}">Ouvrir</button></div></div>`;
     }).join('')||'<p class="muted">Aucun document enregistré.</p>';
+    box.querySelectorAll('[data-open-document]').forEach(b=>b.onclick=()=>openDocument(b.dataset.openDocument));
   } catch(error) {
     console.error('Chargement des documents Supabase :',error);
     box.innerHTML=`<p class="muted">Impossible de charger les documents : ${esc(error.message||String(error))}</p><p class="muted small">Aucune donnée n’a été modifiée. Réessaie avec « Actualiser ».</p>`;
   }
 }
 $('refreshDocuments').onclick=loadDocuments;
-$('createDocument').onclick=async()=>{const type=$('docType').value,customer_id=$('docCustomer').value||null;if(!customer_id){msg('Sélectionne un client avant de créer le document.');return}try{const {data:number,error:nerr}=await db.rpc('next_management_document_number',{p_type:type});if(nerr)throw nerr;const row={id:crypto.randomUUID(),type,number,customer_id,document_date:$('docDate').value||new Date().toISOString().slice(0,10),subject:$('docSubject').value.trim(),status:$('docStatus').value,validity:30,due_date:'',payload:{items:[],discount:0,notes:''},issued:false};const {error}=await db.from('management_documents').insert(row);if(error)throw error;$('docSubject').value='';await loadDocuments();msg(`Document ${number} créé.`)}catch(e){msg('Création impossible : '+e.message)}};
+$('createDocument').onclick=async()=>{const type=$('docType').value,customer_id=$('docCustomer').value||null;if(!customer_id){msg('Sélectionne un client avant de créer le document.');return}try{const {data:number,error:nerr}=await db.rpc('next_management_document_number',{p_type:type});if(nerr)throw nerr;const row={id:crypto.randomUUID(),type,number,customer_id,document_date:$('docDate').value||new Date().toISOString().slice(0,10),subject:$('docSubject').value.trim(),status:$('docStatus').value,validity:30,due_date:'',payload:{items:[],discount:0,notes:''},issued:false};const {error}=await db.from('management_documents').insert(row);if(error)throw error;$('docSubject').value='';await loadDocuments();msg(`Document ${number} créé.`);await openDocument(row.id)}catch(e){msg('Création impossible : '+e.message)}};
 async function loadSettings(){const {data,error}=await db.from('management_settings').select('settings').eq('id',1).maybeSingle();if(error){msg('Réglages : '+error.message);return}const s=data?.settings||{};$('settingBusinessName').value=s.businessName||'So Info';$('settingEmail').value=s.email||'';$('settingLegalStatus').value=s.legalStatus||'Micro-entreprise';$('settingVatMode').value=s.vatMode||'exempt';$('settingPaymentTerms').value=s.paymentTerms||''}
 $('settingsForm').onsubmit=async e=>{e.preventDefault();const settings={businessName:$('settingBusinessName').value.trim(),email:$('settingEmail').value.trim(),legalStatus:$('settingLegalStatus').value.trim(),vatMode:$('settingVatMode').value,paymentTerms:$('settingPaymentTerms').value.trim()};const {error}=await db.from('management_settings').upsert({id:1,settings,updated_at:new Date().toISOString()});if(error)msg('Enregistrement impossible : '+error.message);else msg('Réglages enregistrés dans Supabase.')};
 $('docDate').value=new Date().toISOString().slice(0,10);
 (async()=>{try{const u=await admin();if(u){$('adminEmail').textContent=u.email||'';show(true);await load();await loadDocuments();await loadSettings()}}catch(e){msg(e.message)}})();
+
+
+// V1.3 — édition détaillée, sauvegarde et impression des documents.
+let activeDocument=null, activePayload={};
+const money=n=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(n)||0);
+function itemRow(item={description:'',qty:1,price:0,vat:0}){
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td><input aria-label="Désignation" class="item-description" maxlength="240" value="${esc(item.description||'')}"></td><td><input aria-label="Quantité" class="item-qty" type="number" min="0" step="0.01" value="${Number(item.qty??1)}"></td><td><input aria-label="Prix unitaire" class="item-price" type="number" min="0" step="0.01" value="${Number(item.price??0)}"></td><td><input aria-label="TVA" class="item-vat" type="number" min="0" max="100" step="0.1" value="${Number(item.vat??0)}"></td><td><button type="button" class="remove-item" aria-label="Supprimer la ligne">×</button></td>`;
+  tr.querySelectorAll('input').forEach(i=>i.addEventListener('input',calculateDocumentTotals));
+  tr.querySelector('.remove-item').onclick=()=>{tr.remove();calculateDocumentTotals()};
+  return tr;
+}
+function getDocumentItems(){
+  return [...$('documentItems').querySelectorAll('tr')].map(tr=>({
+    description:tr.querySelector('.item-description').value.trim(),
+    qty:Math.max(0,Number(tr.querySelector('.item-qty').value)||0),
+    price:Math.max(0,Number(tr.querySelector('.item-price').value)||0),
+    vat:Math.max(0,Math.min(100,Number(tr.querySelector('.item-vat').value)||0))
+  }));
+}
+function calculateDocumentTotals(){
+  const items=getDocumentItems();
+  const discount=Math.max(0,Number($('editDocDiscount').value)||0);
+  const ht0=items.reduce((s,i)=>s+i.qty*i.price,0);
+  const discountRatio=ht0>0?Math.min(1,discount/ht0):0;
+  const ht=Math.max(0,ht0-discount);
+  const vat=items.reduce((s,i)=>s+(i.qty*i.price*(1-discountRatio)*i.vat/100),0);
+  $('docTotalHT').textContent=money(ht);
+  $('docTotalVAT').textContent=money(vat);
+  $('docTotalTTC').textContent=money(ht+vat);
+}
+$('editDocDiscount').addEventListener('input',calculateDocumentTotals);
+$('addDocumentItem').onclick=()=>{$('documentItems').appendChild(itemRow());calculateDocumentTotals()};
+function setVal(id,v){$(id).value=v??''}
+async function openDocument(id){
+  try{
+    const {data,error}=await db.from('management_documents').select('*').eq('id',id).single();
+    if(error)throw error;
+    activeDocument=data;activePayload=data.payload&&typeof data.payload==='object'?data.payload:{};
+    const client=customers.find(c=>c.id===data.customer_id);
+    const typeLabel={quote:'Devis',invoice:'Facture',intake:'Prise en charge'}[data.type]||data.type;
+    $('editorDocTitle').textContent=`${data.number} · ${typeLabel}${client?' — '+client.first_name+' '+client.last_name:''}`;
+    setVal('editDocSubject',data.subject);setVal('editDocDate',data.document_date);setVal('editDocStatus',data.status||'En cours');
+    setVal('editDocValidity',data.validity??30);setVal('editDocDueDate',data.due_date||'');
+    setVal('editDocDiscount',activePayload.discount??0);setVal('editDocNotes',activePayload.notes||'');
+    $('documentItems').innerHTML='';
+    const items=Array.isArray(activePayload.items)?activePayload.items:[];
+    (items.length?items:[{description:'',qty:1,price:0,vat:0}]).forEach(i=>$('documentItems').appendChild(itemRow(i)));
+    $('intakeFields').hidden=data.type!=='intake';
+    setVal('intakeMaterial',activePayload.materialType||'');setVal('intakeModel',activePayload.model||'');
+    setVal('intakeSerial',activePayload.serial||'');setVal('intakeAccessories',activePayload.accessories||'');
+    setVal('intakeFault',activePayload.fault||'');setVal('intakeCondition',activePayload.condition||'');
+    setVal('intakeTerms',activePayload.terms||'Matériel confié pour diagnostic. Sauvegarde des données à la charge du client sauf accord écrit contraire.');
+    calculateDocumentTotals();
+    $('documentEditor').hidden=false;$('documentEditor').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){msg('Ouverture impossible : '+e.message)}
+}
+$('closeDocumentEditor').onclick=()=>{$('documentEditor').hidden=true;activeDocument=null};
+$('saveDocument').onclick=async()=>{
+  if(!activeDocument)return;
+  const items=getDocumentItems();
+  const payload={...activePayload,items,discount:Math.max(0,Number($('editDocDiscount').value)||0),notes:$('editDocNotes').value.trim()};
+  if(activeDocument.type==='intake'){
+    Object.assign(payload,{materialType:$('intakeMaterial').value.trim(),model:$('intakeModel').value.trim(),serial:$('intakeSerial').value.trim(),accessories:$('intakeAccessories').value.trim(),fault:$('intakeFault').value.trim(),condition:$('intakeCondition').value.trim(),terms:$('intakeTerms').value.trim()});
+  }
+  const patch={subject:$('editDocSubject').value.trim(),document_date:$('editDocDate').value||null,status:$('editDocStatus').value,validity:Math.max(0,Number($('editDocValidity').value)||0),due_date:$('editDocDueDate').value||null,payload,updated_at:new Date().toISOString()};
+  try{
+    const {error}=await db.from('management_documents').update(patch).eq('id',activeDocument.id);
+    if(error)throw error;
+    activeDocument={...activeDocument,...patch};activePayload=payload;
+    await loadDocuments();msg(`Document ${activeDocument.number} enregistré dans Supabase.`);
+  }catch(e){msg('Enregistrement impossible : '+e.message)}
+};
+function printDocument(){
+  if(!activeDocument)return;
+  const d=activeDocument,p=activePayload,c=customers.find(x=>x.id===d.customer_id)||{};
+  const settings=(()=>({businessName:$('settingBusinessName').value||'So Info',email:$('settingEmail').value||'',legalStatus:$('settingLegalStatus').value||'',paymentTerms:$('settingPaymentTerms').value||''}))();
+  const typeLabel={quote:'DEVIS',invoice:'FACTURE',intake:'BON DE PRISE EN CHARGE'}[d.type]||'DOCUMENT';
+  const rows=(Array.isArray(p.items)?p.items:[]).map(i=>{
+    const qty=Number(i.qty)||0,price=Number(i.price)||0,vat=Number(i.vat)||0;
+    return `<tr><td>${esc(i.description||'')}</td><td class="num">${qty}</td><td class="num">${money(price)}</td><td class="num">${vat}%</td><td class="num">${money(qty*price)}</td></tr>`;
+  }).join('');
+  const ht0=(p.items||[]).reduce((s,i)=>s+(Number(i.qty)||0)*(Number(i.price)||0),0);
+  const discount=Math.min(ht0,Math.max(0,Number(p.discount)||0));
+  const ratio=ht0?discount/ht0:0;
+  const vat=(p.items||[]).reduce((s,i)=>s+(Number(i.qty)||0)*(Number(i.price)||0)*(1-ratio)*(Number(i.vat)||0)/100,0);
+  const ht=ht0-discount, ttc=ht+vat;
+  const clientAddress=[c.address,c.postcode,c.city].filter(Boolean).join(', ');
+  $('documentPrintArea').innerHTML=`<article class="print-sheet">
+    <header class="print-head"><div><div class="print-brand">SO <span>INFO</span></div><div>${esc(settings.legalStatus)}</div><div>${esc(settings.email)}</div></div><div class="print-meta"><h1>${typeLabel}</h1><strong>${esc(d.number)}</strong><div>Date : ${esc(d.document_date||'')}</div>${d.due_date?`<div>Échéance : ${esc(d.due_date)}</div>`:''}${d.validity?`<div>Validité : ${esc(d.validity)} jours</div>`:''}</div></header>
+    <section class="print-parties"><div><strong>ÉMETTEUR</strong><p>${esc(settings.businessName)}</p><p>${esc(settings.email)}</p></div><div><strong>CLIENT</strong><p>${esc(c.first_name||'')} ${esc(c.last_name||'')}</p><p>${esc(c.company||'')}</p><p>${esc(clientAddress)}</p><p>${esc(c.phone||'')}</p><p>${esc(c.email||'')}</p></div></section>
+    <h2>${esc(d.subject||typeLabel)}</h2>
+    <table><thead><tr><th>Désignation</th><th class="num">Qté</th><th class="num">Prix unitaire</th><th class="num">TVA</th><th class="num">Total HT</th></tr></thead><tbody>${rows||'<tr><td colspan="5">Aucune ligne de prestation renseignée.</td></tr>'}</tbody></table>
+    <div class="print-totals"><div><span>Total HT</span><strong>${money(ht0)}</strong></div><div><span>Remise</span><strong>− ${money(discount)}</strong></div><div><span>TVA</span><strong>${money(vat)}</strong></div><div class="strong"><span>Total TTC</span><strong>${money(ttc)}</strong></div></div>
+    ${d.type==='intake'?`<h3>Matériel confié</h3><p>Type : ${esc(p.materialType||'')} · Modèle : ${esc(p.model||'')} · Série : ${esc(p.serial||'')}</p><p>Accessoires : ${esc(p.accessories||'')}</p><p>Panne signalée : ${esc(p.fault||'')}</p><p>État : ${esc(p.condition||'')}</p>`:''}
+    ${p.notes?`<div class="print-terms"><strong>Notes</strong><p>${esc(p.notes)}</p></div>`:''}
+    <div class="print-terms">${esc(p.terms||settings.paymentTerms)}</div>
+    <footer class="print-foot">SO INFO · ${esc(settings.businessName)} · ${esc(settings.email)}<br>Document généré depuis l'espace d'administration.</footer>
+  </article>`;
+  window.print();
+}
+$('printDocument').onclick=printDocument;
+
