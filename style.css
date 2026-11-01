@@ -235,3 +235,70 @@
     break-inside:avoid!important; page-break-inside:avoid!important;
   }
 }
+
+
+/* V6 — impression isolée du tableau de bord : la feuille n'hérite plus de sa grille */
+#so-info-print-root { display:none; }
+@page { size:A4 portrait; margin:10mm; }
+@media print {
+  html, body {
+    display:block!important; position:static!important;
+    width:auto!important; min-width:0!important; max-width:none!important;
+    height:auto!important; min-height:0!important; margin:0!important;
+    padding:0!important; overflow:visible!important; background:#fff!important;
+  }
+  body.so-info-printing > *:not(#so-info-print-root) {
+    display:none!important;
+  }
+  body.so-info-printing > #so-info-print-root {
+    display:block!important; position:static!important; float:none!important;
+    width:100%!important; max-width:100%!important; min-width:0!important;
+    height:auto!important; min-height:0!important; margin:0!important;
+    padding:0!important; overflow:visible!important; background:#fff!important;
+    color:#171717!important; box-sizing:border-box!important;
+  }
+  #so-info-print-root, #so-info-print-root * {
+    box-sizing:border-box!important; max-width:100%!important;
+    min-width:0!important; visibility:visible!important;
+  }
+  #so-info-print-root .print-sheet {
+    display:block!important; position:static!important; float:none!important;
+    width:100%!important; max-width:100%!important; min-width:0!important;
+    height:auto!important; min-height:0!important; max-height:none!important;
+    margin:0!important; padding:0!important; overflow:visible!important;
+    background:#fff!important; color:#171717!important;
+    break-after:auto!important; page-break-after:auto!important;
+  }
+  #so-info-print-root .p-header {
+    display:grid!important; grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    gap:5mm!important; width:100%!important; min-width:0!important;
+    margin:0 0 5mm!important; padding:0 0 4mm!important;
+    align-items:center!important; overflow:visible!important;
+  }
+  #so-info-print-root .p-brand {
+    display:flex!important; flex-direction:row!important; align-items:center!important;
+    gap:3mm!important; min-width:0!important; width:100%!important;
+  }
+  #so-info-print-root .p-brand>div { min-width:0!important; flex:1 1 auto!important; }
+  #so-info-print-root .p-logo { flex:0 0 15mm!important; width:15mm!important; height:15mm!important; }
+  #so-info-print-root .p-brand-name { font-size:21pt!important; white-space:nowrap!important; }
+  #so-info-print-root .p-doc-meta {
+    display:flex!important; flex-direction:column!important; align-items:flex-end!important;
+    width:100%!important; min-width:0!important; max-width:100%!important;
+    text-align:right!important; overflow:visible!important;
+  }
+  #so-info-print-root .p-doc-meta h1 {
+    display:block!important; width:100%!important; min-width:0!important;
+    max-width:100%!important; margin:0!important; font-size:19pt!important;
+    line-height:1.05!important; white-space:normal!important;
+    overflow-wrap:anywhere!important; word-break:normal!important;
+    text-align:right!important;
+  }
+  #so-info-print-root .p-doc-meta>span,
+  #so-info-print-root .p-number { white-space:normal!important; overflow-wrap:anywhere!important; }
+  #so-info-print-root .p-parties { grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important; gap:4mm!important; }
+  #so-info-print-root .p-panel { padding:3mm!important; }
+  #so-info-print-root .p-footer { break-inside:avoid!important; page-break-inside:avoid!important; }
+  #so-info-print-root table { width:100%!important; table-layout:fixed!important; }
+  #so-info-print-root th, #so-info-print-root td { overflow-wrap:anywhere!important; }
+}

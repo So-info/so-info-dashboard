@@ -182,7 +182,13 @@ function printDocument(){
   <div class="p-total-wrap"><div class="p-total"><div><span>Total HT</span><b>${money(ht0)}</b></div>${discount?`<div><span>Remise</span><b>− ${money(discount)}</b></div>`:''}<div><span>TVA</span><b>${money(vat)}</b></div><div class="p-grand"><span>Total TTC</span><b>${money(ht0-discount+vat)}</b></div></div></div>
   ${p.notes?`<section class="p-panel p-note"><div class="p-label">NOTES</div><p>${esc(p.notes)}</p></section>`:''}
   <section class="p-panel p-terms"><div class="p-label">${d.type==='invoice'?'CONDITIONS DE RÈGLEMENT':'VALIDITÉ & CONDITIONS'}</div><p>${esc(p.terms||settings.paymentTerms||'À régler selon les conditions convenues.')}</p></section>`:'';
-  $('documentPrintArea').innerHTML=`<article class="print-sheet ${isIntake?'is-intake':'is-commercial'}">
+  const oldPrintRoot=document.getElementById('so-info-print-root');
+  if(oldPrintRoot) oldPrintRoot.remove();
+  const printRoot=document.createElement('div');
+  printRoot.id='so-info-print-root';
+  document.body.appendChild(printRoot);
+  document.body.classList.add('so-info-printing');
+  printRoot.innerHTML=`<article class="print-sheet ${isIntake?'is-intake':'is-commercial'}">
     <header class="p-header"><div class="p-brand"><span class="p-logo">S</span><div><div class="p-brand-name">SO <em>INFO</em></div><small>Services informatiques & dépannage</small></div></div>
     <div class="p-doc-meta"><small>DOCUMENT ${isIntake?'ATELIER':'COMMERCIAL'}</small><h1>${d.type==='intake'?'PRISE EN<br>CHARGE':typeLabel}</h1><strong class="p-number">${esc(d.number)}</strong><span>Date : ${esc(d.document_date||'')}</span>${d.due_date?`<span>Échéance : ${esc(d.due_date)}</span>`:''}${d.type==='quote'&&d.validity?`<span>Valable ${esc(d.validity)} jours</span>`:''}</div></header>
     <section class="p-parties"><div class="p-panel"><div class="p-label">ÉMETTEUR</div><b>${esc(settings.businessName)}</b><span>${esc(settings.legalStatus)}</span><span>${esc(settings.email)}</span></div>
@@ -191,6 +197,12 @@ function printDocument(){
     ${commercialBlock}${intakeBlock}
     <footer class="p-footer"><div>DÉPANNAGE INFORMATIQUE <i>•</i> MAINTENANCE & OPTIMISATION <i>•</i> CONSEIL</div><b>SO INFO <em>—</em> ${esc(settings.legalStatus)}</b><small>${esc(settings.email)}</small></footer>
   </article>`;
+  window.onafterprint=()=>{
+    const root=document.getElementById('so-info-print-root');
+    if(root) root.remove();
+    document.body.classList.remove('so-info-printing');
+    window.onafterprint=null;
+  };
   window.print();
 }
 $('printDocument').onclick=printDocument;
