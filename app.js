@@ -127,35 +127,39 @@ $('saveDocument').onclick=async()=>{
 };
 function printDocument(){
   if(!activeDocument)return;
-  const d=activeDocument,p=activePayload,c=customers.find(x=>x.id===d.customer_id)||{};
-  const settings=(()=>({businessName:$('settingBusinessName').value||'So Info',email:$('settingEmail').value||'',legalStatus:$('settingLegalStatus').value||'',paymentTerms:$('settingPaymentTerms').value||''}))();
-  const typeLabel={quote:'DEVIS',invoice:'FACTURE',intake:'BON DE PRISE EN CHARGE'}[d.type]||'DOCUMENT';
-  const rows=(Array.isArray(p.items)?p.items:[]).map(i=>{
-    const qty=Number(i.qty)||0,price=Number(i.price)||0,vat=Number(i.vat)||0;
-    return `<tr><td>${esc(i.description||'')}</td><td class="num">${qty}</td><td class="num">${money(price)}</td><td class="num">${vat}%</td><td class="num">${money(qty*price)}</td></tr>`;
+  const d=activeDocument,p=activePayload||{},c=customers.find(x=>x.id===d.customer_id)||{};
+  const settings={businessName:$('settingBusinessName').value||'So Info',email:$('settingEmail').value||'',legalStatus:$('settingLegalStatus').value||'Micro-entreprise',paymentTerms:$('settingPaymentTerms').value||''};
+  const isIntake=d.type==='intake';
+  const typeLabel={quote:'DEVIS',invoice:'FACTURE',intake:'PRISE EN CHARGE'}[d.type]||'DOCUMENT';
+  const items=Array.isArray(p.items)?p.items:[];
+  const rows=items.filter(i=>String(i.description||'').trim()||Number(i.price)||Number(i.qty)>1).map(i=>{
+    const qty=Number(i.qty)||0,price=Number(i.price)||0,vatRate=Number(i.vat)||0;
+    return `<tr><td>${esc(i.description||'Prestation')}</td><td class="num">${qty}</td><td class="num">${money(price)}</td><td class="num">${vatRate}%</td><td class="num">${money(qty*price)}</td></tr>`;
   }).join('');
-  const ht0=(p.items||[]).reduce((s,i)=>s+(Number(i.qty)||0)*(Number(i.price)||0),0);
-  const discount=Math.min(ht0,Math.max(0,Number(p.discount)||0));
-  const ratio=ht0?discount/ht0:0;
-  const vat=(p.items||[]).reduce((s,i)=>s+(Number(i.qty)||0)*(Number(i.price)||0)*(1-ratio)*(Number(i.vat)||0)/100,0);
-  const ht=ht0-discount, ttc=ht+vat;
-  const clientAddress=[c.address,c.postcode,c.city].filter(Boolean).join(', ');
-  $('documentPrintArea').innerHTML=`<article class="print-sheet">
-    <header class="print-head">
-      <div class="print-brand-block"><div class="print-brand-mark">S</div><div><div class="print-brand">SO <span>INFO</span></div><div class="print-tagline">Services informatiques & dépannage</div></div></div>
-      <div class="print-meta"><div class="print-kicker">DOCUMENT COMMERCIAL</div><h1>${typeLabel}</h1><div class="print-number">${esc(d.number)}</div><div class="print-meta-line">Date : ${esc(d.document_date||'')}</div>${d.due_date?`<div class="print-meta-line">Échéance : ${esc(d.due_date)}</div>`:''}${d.validity?`<div class="print-meta-line">Validité : ${esc(d.validity)} jours</div>`:''}</div>
-    </header>
-    <section class="print-parties">
-      <div class="print-party"><div class="print-party-title">ÉMETTEUR</div><div class="print-party-name">${esc(settings.businessName)}</div><div>${esc(settings.legalStatus)}</div><div>${esc(settings.email)}</div></div>
-      <div class="print-party"><div class="print-party-title">CLIENT</div><div class="print-party-name">${esc(c.first_name||'')} ${esc(c.last_name||'')}</div>${c.company?`<div>${esc(c.company)}</div>`:''}${clientAddress?`<div>${esc(clientAddress)}</div>`:''}${c.phone?`<div>${esc(c.phone)}</div>`:''}${c.email?`<div>${esc(c.email)}</div>`:''}</div>
-    </section>
-    <div class="print-subject"><span>OBJET</span><strong>${esc(d.subject||typeLabel)}</strong></div>
-    <table class="print-table"><thead><tr><th>Désignation</th><th class="num">Qté</th><th class="num">Prix unitaire HT</th><th class="num">TVA</th><th class="num">Total HT</th></tr></thead><tbody>${rows||'<tr><td colspan="5">Aucune ligne de prestation renseignée.</td></tr>'}</tbody></table>
-    <div class="print-lower"><div class="print-watermark">S</div><div class="print-totals"><div><span>Total HT</span><strong>${money(ht0)}</strong></div><div><span>Remise</span><strong>− ${money(discount)}</strong></div><div><span>TVA</span><strong>${money(vat)}</strong></div><div class="strong"><span>Total TTC</span><strong>${money(ttc)}</strong></div></div></div>
-    ${d.type==='intake'?`<section class="print-extra"><h3>MATÉRIEL CONFIÉ</h3><div class="print-extra-grid"><div><b>Type</b><span>${esc(p.materialType||'—')}</span></div><div><b>Modèle</b><span>${esc(p.model||'—')}</span></div><div><b>Numéro de série</b><span>${esc(p.serial||'—')}</span></div><div><b>Accessoires</b><span>${esc(p.accessories||'—')}</span></div><div><b>Panne signalée</b><span>${esc(p.fault||'—')}</span></div><div><b>État du matériel</b><span>${esc(p.condition||'—')}</span></div></div></section>`:''}
-    ${p.notes?`<div class="print-note"><strong>NOTES</strong><p>${esc(p.notes)}</p></div>`:''}
-    <div class="print-terms"><strong>CONDITIONS DE RÈGLEMENT</strong><p>${esc(p.terms||settings.paymentTerms)}</p></div>
-    <footer class="print-foot"><div class="print-services"><span>Dépannage informatique</span><span>Maintenance & optimisation</span><span>Conseil & accompagnement</span></div><div class="print-foot-brand">SO INFO <i>—</i> ${esc(settings.legalStatus)} <span>${esc(settings.email)}</span></div></footer>
+  const ht0=items.reduce((s,i)=>s+(Number(i.qty)||0)*(Number(i.price)||0),0);
+  const discount=Math.min(ht0,Math.max(0,Number(p.discount)||0)),ratio=ht0?discount/ht0:0;
+  const vat=items.reduce((s,i)=>s+(Number(i.qty)||0)*(Number(i.price)||0)*(1-ratio)*(Number(i.vat)||0)/100,0);
+  const address=[c.address,c.postcode,c.city].filter(Boolean).join(', ');
+  const intakeBlock=isIntake?`<section class="p-panel p-equipment"><div class="p-label">MATÉRIEL CONFIÉ</div><div class="p-fields">
+    <div><small>Type de matériel</small><b>${esc(p.materialType||'À renseigner')}</b></div><div><small>Marque / modèle</small><b>${esc(p.model||'À renseigner')}</b></div>
+    <div><small>Numéro de série</small><b>${esc(p.serial||'À renseigner')}</b></div><div><small>Accessoires remis</small><b>${esc(p.accessories||'Aucun indiqué')}</b></div>
+    <div class="wide"><small>Panne signalée</small><b>${esc(p.fault||'Non renseignée')}</b></div>
+    <div class="wide"><small>État / observations à la réception</small><b>${esc(p.condition||'Non renseigné')}</b></div>
+  </div></section>
+  <section class="p-panel p-terms"><div class="p-label">CONDITIONS DE PRISE EN CHARGE</div><p>${esc(p.terms||'Matériel confié pour diagnostic. Sauvegarde des données à la charge du client sauf accord écrit contraire.')}</p></section>
+  <section class="p-signatures"><div><b>Signature du client</b><small>Précédée de la mention « Lu et approuvé »</small></div><div><b>Réception par SO INFO</b><small>Date et signature</small></div></section>`:'';
+  const commercialBlock=!isIntake?`<table class="p-table"><thead><tr><th>Désignation</th><th class="num">Qté</th><th class="num">Prix HT</th><th class="num">TVA</th><th class="num">Total HT</th></tr></thead><tbody>${rows||'<tr><td colspan="5">Aucune prestation renseignée.</td></tr>'}</tbody></table>
+  <div class="p-total-wrap"><div class="p-total"><div><span>Total HT</span><b>${money(ht0)}</b></div>${discount?`<div><span>Remise</span><b>− ${money(discount)}</b></div>`:''}<div><span>TVA</span><b>${money(vat)}</b></div><div class="p-grand"><span>Total TTC</span><b>${money(ht0-discount+vat)}</b></div></div></div>
+  ${p.notes?`<section class="p-panel p-note"><div class="p-label">NOTES</div><p>${esc(p.notes)}</p></section>`:''}
+  <section class="p-panel p-terms"><div class="p-label">${d.type==='invoice'?'CONDITIONS DE RÈGLEMENT':'VALIDITÉ & CONDITIONS'}</div><p>${esc(p.terms||settings.paymentTerms||'À régler selon les conditions convenues.')}</p></section>`:'';
+  $('documentPrintArea').innerHTML=`<article class="print-sheet ${isIntake?'is-intake':'is-commercial'}">
+    <header class="p-header"><div class="p-brand"><span class="p-logo">S</span><div><div class="p-brand-name">SO <em>INFO</em></div><small>Services informatiques & dépannage</small></div></div>
+    <div class="p-doc-meta"><small>DOCUMENT ${isIntake?'ATELIER':'COMMERCIAL'}</small><h1>${typeLabel}</h1><strong class="p-number">${esc(d.number)}</strong><span>Date : ${esc(d.document_date||'')}</span>${d.due_date?`<span>Échéance : ${esc(d.due_date)}</span>`:''}${d.type==='quote'&&d.validity?`<span>Valable ${esc(d.validity)} jours</span>`:''}</div></header>
+    <section class="p-parties"><div class="p-panel"><div class="p-label">ÉMETTEUR</div><b>${esc(settings.businessName)}</b><span>${esc(settings.legalStatus)}</span><span>${esc(settings.email)}</span></div>
+    <div class="p-panel"><div class="p-label">CLIENT</div><b>${esc(`${c.first_name||''} ${c.last_name||''}`.trim()||'Client')}</b>${c.company?`<span>${esc(c.company)}</span>`:''}${address?`<span>${esc(address)}</span>`:''}${c.phone?`<span>${esc(c.phone)}</span>`:''}${c.email?`<span>${esc(c.email)}</span>`:''}</div></section>
+    <div class="p-subject"><small>OBJET</small><b>${esc(d.subject||typeLabel)}</b></div>
+    ${commercialBlock}${intakeBlock}
+    <footer class="p-footer"><div>DÉPANNAGE INFORMATIQUE <i>•</i> MAINTENANCE & OPTIMISATION <i>•</i> CONSEIL</div><b>SO INFO <em>—</em> ${esc(settings.legalStatus)}</b><small>${esc(settings.email)}</small></footer>
   </article>`;
   window.print();
 }
