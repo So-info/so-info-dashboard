@@ -23,7 +23,28 @@ function drawLoyalty(id){const c=customers.find(x=>x.id===id),card=cardOf(c);sel
 async function loadHistory(cardId){$('stampHistory').innerHTML='<li>Chargement…</li>';const {data,error}=await db.from('stamp_events').select('action,created_at').eq('card_id',cardId).order('created_at',{ascending:false}).limit(30);if(error){$('stampHistory').innerHTML=`<li>${esc(error.message)}</li>`;return}$('stampHistory').innerHTML=(data||[]).map(e=>`<li>${new Date(e.created_at).toLocaleString('fr-FR')} — ${e.action==='stamp'?'Tampon ajouté':'Cadeau remis, carte remise à zéro'}</li>`).join('')||'<li>Aucun événement.</li>'}
 $('addStamp').onclick=async()=>{if(!selectedCard)return;try{const {error}=await db.rpc('add_stamp',{p_card_id:selectedCard.id});if(error)throw error;const id=$('loyaltyClient').value;await load();$('loyaltyClient').value=id;drawLoyalty(id);msg('Tampon ajouté.')}catch(e){msg('Erreur : '+e.message)}};
 $('redeem').onclick=async()=>{if(!selectedCard||!confirm('Confirmer la remise du cadeau et remettre la carte à zéro ?'))return;try{const {error}=await db.rpc('redeem_reward',{p_card_id:selectedCard.id});if(error)throw error;const id=$('loyaltyClient').value;await load();$('loyaltyClient').value=id;drawLoyalty(id);msg('Cadeau remis. Carte remise à zéro.')}catch(e){msg('Erreur : '+e.message)}};
-async function loadDocuments(){const box=$('documentsList');box.innerHTML='<p class="muted">Chargement…</p>';const {data,error}=await db.from('management_documents').select('id,type,number,document_date,customer_id,subject,status,created_at').order('created_at',{ascending:false});if(error){box.innerHTML=`<p class="muted">${esc(error.message)} — Vérifie que la migration SQL a bien été exécutée.</p>`;return}box.innerHTML=(data||[]).map(d=>{const c=customers.find(x=>x.id===d.customer_id);const typ={quote:'Devis',invoice:'Facture',intake:'Prise en charge'}[d.type]||d.type;return `<div class="client-row"><div><strong>${esc(d.number)} · ${typ}</strong><small>${esc(c?c.first_name+' '+c.last_name:'Client non associé')} · ${esc(d.subject||'Sans objet')} · ${esc(d.status||'')}</small></div><span class="muted small">${esc(d.document_date||'')}</span></div>`}).join('')||'<p class="muted">Aucun document enregistré.</p>'}
+async function loadDocuments(){
+  const box=$('documentsList');
+  if(!box) return;
+  box.innerHTML='<p class="muted">Chargement des documents…</p>';
+  try {
+    const request=db.from('management_documents')
+      .select('id,type,number,document_date,customer_id,subject,status,created_at')
+      .order('created_at',{ascending:false});
+    const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('La requête Supabase met trop de temps à répondre. Vérifie Réseau > Fetch/XHR et réessaie.')),15000));
+    const {data,error}=await Promise.race([request,timeout]);
+    if(error) throw error;
+    const rows=data||[];
+    box.innerHTML=rows.map(d=>{
+      const c=customers.find(x=>x.id===d.customer_id);
+      const typ={quote:'Devis',invoice:'Facture',intake:'Prise en charge'}[d.type]||d.type;
+      return `<div class="client-row"><div><strong>${esc(d.number)} · ${typ}</strong><small>${esc(c?c.first_name+' '+c.last_name:'Client non associé')} · ${esc(d.subject||'Sans objet')} · ${esc(d.status||'')}</small></div><span class="muted small">${esc(d.document_date||'')}</span></div>`;
+    }).join('')||'<p class="muted">Aucun document enregistré.</p>';
+  } catch(error) {
+    console.error('Chargement des documents Supabase :',error);
+    box.innerHTML=`<p class="muted">Impossible de charger les documents : ${esc(error.message||String(error))}</p><p class="muted small">Aucune donnée n’a été modifiée. Réessaie avec « Actualiser ».</p>`;
+  }
+}
 $('refreshDocuments').onclick=loadDocuments;
 $('createDocument').onclick=async()=>{const type=$('docType').value,customer_id=$('docCustomer').value||null;if(!customer_id){msg('Sélectionne un client avant de créer le document.');return}try{const {data:number,error:nerr}=await db.rpc('next_management_document_number',{p_type:type});if(nerr)throw nerr;const row={id:crypto.randomUUID(),type,number,customer_id,document_date:$('docDate').value||new Date().toISOString().slice(0,10),subject:$('docSubject').value.trim(),status:$('docStatus').value,validity:30,due_date:'',payload:{items:[],discount:0,notes:''},issued:false};const {error}=await db.from('management_documents').insert(row);if(error)throw error;$('docSubject').value='';await loadDocuments();msg(`Document ${number} créé.`)}catch(e){msg('Création impossible : '+e.message)}};
 async function loadSettings(){const {data,error}=await db.from('management_settings').select('settings').eq('id',1).maybeSingle();if(error){msg('Réglages : '+error.message);return}const s=data?.settings||{};$('settingBusinessName').value=s.businessName||'So Info';$('settingEmail').value=s.email||'';$('settingLegalStatus').value=s.legalStatus||'Micro-entreprise';$('settingVatMode').value=s.vatMode||'exempt';$('settingPaymentTerms').value=s.paymentTerms||''}
