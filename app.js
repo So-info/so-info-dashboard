@@ -141,15 +141,21 @@ function printDocument(){
   const ht=ht0-discount, ttc=ht+vat;
   const clientAddress=[c.address,c.postcode,c.city].filter(Boolean).join(', ');
   $('documentPrintArea').innerHTML=`<article class="print-sheet">
-    <header class="print-head"><div><div class="print-brand">SO <span>INFO</span></div><div>${esc(settings.legalStatus)}</div><div>${esc(settings.email)}</div></div><div class="print-meta"><h1>${typeLabel}</h1><strong>${esc(d.number)}</strong><div>Date : ${esc(d.document_date||'')}</div>${d.due_date?`<div>Échéance : ${esc(d.due_date)}</div>`:''}${d.validity?`<div>Validité : ${esc(d.validity)} jours</div>`:''}</div></header>
-    <section class="print-parties"><div><strong>ÉMETTEUR</strong><p>${esc(settings.businessName)}</p><p>${esc(settings.email)}</p></div><div><strong>CLIENT</strong><p>${esc(c.first_name||'')} ${esc(c.last_name||'')}</p><p>${esc(c.company||'')}</p><p>${esc(clientAddress)}</p><p>${esc(c.phone||'')}</p><p>${esc(c.email||'')}</p></div></section>
-    <h2>${esc(d.subject||typeLabel)}</h2>
-    <table><thead><tr><th>Désignation</th><th class="num">Qté</th><th class="num">Prix unitaire</th><th class="num">TVA</th><th class="num">Total HT</th></tr></thead><tbody>${rows||'<tr><td colspan="5">Aucune ligne de prestation renseignée.</td></tr>'}</tbody></table>
-    <div class="print-totals"><div><span>Total HT</span><strong>${money(ht0)}</strong></div><div><span>Remise</span><strong>− ${money(discount)}</strong></div><div><span>TVA</span><strong>${money(vat)}</strong></div><div class="strong"><span>Total TTC</span><strong>${money(ttc)}</strong></div></div>
-    ${d.type==='intake'?`<h3>Matériel confié</h3><p>Type : ${esc(p.materialType||'')} · Modèle : ${esc(p.model||'')} · Série : ${esc(p.serial||'')}</p><p>Accessoires : ${esc(p.accessories||'')}</p><p>Panne signalée : ${esc(p.fault||'')}</p><p>État : ${esc(p.condition||'')}</p>`:''}
-    ${p.notes?`<div class="print-terms"><strong>Notes</strong><p>${esc(p.notes)}</p></div>`:''}
-    <div class="print-terms">${esc(p.terms||settings.paymentTerms)}</div>
-    <footer class="print-foot">SO INFO · ${esc(settings.businessName)} · ${esc(settings.email)}<br>Document généré depuis l'espace d'administration.</footer>
+    <header class="print-head">
+      <div class="print-brand-block"><div class="print-brand-mark">S</div><div><div class="print-brand">SO <span>INFO</span></div><div class="print-tagline">Services informatiques & dépannage</div></div></div>
+      <div class="print-meta"><div class="print-kicker">DOCUMENT COMMERCIAL</div><h1>${typeLabel}</h1><div class="print-number">${esc(d.number)}</div><div class="print-meta-line">Date : ${esc(d.document_date||'')}</div>${d.due_date?`<div class="print-meta-line">Échéance : ${esc(d.due_date)}</div>`:''}${d.validity?`<div class="print-meta-line">Validité : ${esc(d.validity)} jours</div>`:''}</div>
+    </header>
+    <section class="print-parties">
+      <div class="print-party"><div class="print-party-title">ÉMETTEUR</div><div class="print-party-name">${esc(settings.businessName)}</div><div>${esc(settings.legalStatus)}</div><div>${esc(settings.email)}</div></div>
+      <div class="print-party"><div class="print-party-title">CLIENT</div><div class="print-party-name">${esc(c.first_name||'')} ${esc(c.last_name||'')}</div>${c.company?`<div>${esc(c.company)}</div>`:''}${clientAddress?`<div>${esc(clientAddress)}</div>`:''}${c.phone?`<div>${esc(c.phone)}</div>`:''}${c.email?`<div>${esc(c.email)}</div>`:''}</div>
+    </section>
+    <div class="print-subject"><span>OBJET</span><strong>${esc(d.subject||typeLabel)}</strong></div>
+    <table class="print-table"><thead><tr><th>Désignation</th><th class="num">Qté</th><th class="num">Prix unitaire HT</th><th class="num">TVA</th><th class="num">Total HT</th></tr></thead><tbody>${rows||'<tr><td colspan="5">Aucune ligne de prestation renseignée.</td></tr>'}</tbody></table>
+    <div class="print-lower"><div class="print-watermark">S</div><div class="print-totals"><div><span>Total HT</span><strong>${money(ht0)}</strong></div><div><span>Remise</span><strong>− ${money(discount)}</strong></div><div><span>TVA</span><strong>${money(vat)}</strong></div><div class="strong"><span>Total TTC</span><strong>${money(ttc)}</strong></div></div></div>
+    ${d.type==='intake'?`<section class="print-extra"><h3>MATÉRIEL CONFIÉ</h3><div class="print-extra-grid"><div><b>Type</b><span>${esc(p.materialType||'—')}</span></div><div><b>Modèle</b><span>${esc(p.model||'—')}</span></div><div><b>Numéro de série</b><span>${esc(p.serial||'—')}</span></div><div><b>Accessoires</b><span>${esc(p.accessories||'—')}</span></div><div><b>Panne signalée</b><span>${esc(p.fault||'—')}</span></div><div><b>État du matériel</b><span>${esc(p.condition||'—')}</span></div></div></section>`:''}
+    ${p.notes?`<div class="print-note"><strong>NOTES</strong><p>${esc(p.notes)}</p></div>`:''}
+    <div class="print-terms"><strong>CONDITIONS DE RÈGLEMENT</strong><p>${esc(p.terms||settings.paymentTerms)}</p></div>
+    <footer class="print-foot"><div class="print-services"><span>Dépannage informatique</span><span>Maintenance & optimisation</span><span>Conseil & accompagnement</span></div><div class="print-foot-brand">SO INFO <i>—</i> ${esc(settings.legalStatus)} <span>${esc(settings.email)}</span></div></footer>
   </article>`;
   window.print();
 }
