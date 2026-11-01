@@ -61,144 +61,90 @@
 @page { size: A4 portrait; margin: 0; }
 @media print {
   html, body {
-    width: 210mm !important; height: 297mm !important;
-    min-height: 0 !important; margin: 0 !important; padding: 0 !important;
-    overflow: hidden !important; background: #08090b !important;
+    width: 210mm !important; min-width: 210mm !important;
+    height: auto !important; min-height: 0 !important;
+    margin: 0 !important; padding: 0 !important;
+    overflow: visible !important; background: #090a0c !important;
     -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
   }
-  body * { visibility: hidden !important; }
-  #documentPrintArea, #documentPrintArea * { visibility: visible !important; }
+  body { display: block !important; }
+  .app-shell {
+    display: block !important; width: 210mm !important; max-width: none !important;
+    min-height: 0 !important; margin: 0 !important; padding: 0 !important;
+    overflow: visible !important; box-shadow: none !important; background: transparent !important;
+  }
+  .app-shell > .top, .app-shell > #login, .app-shell > footer,
+  #dashboard > .welcome, #dashboard > .tabs,
+  #dashboard > #view-overview, #dashboard > #view-clients,
+  #dashboard > #view-loyalty, #dashboard > #view-settings,
+  #dashboard > #appMessage,
+  #view-documents > *:not(#documentPrintArea) {
+    display: none !important;
+  }
+  #dashboard, #view-documents {
+    display: block !important; width: 210mm !important; margin: 0 !important;
+    padding: 0 !important; min-height: 0 !important; overflow: visible !important;
+  }
   #documentPrintArea {
-    display: block !important; position: fixed !important;
-    inset: 0 auto auto 0 !important; width: 210mm !important;
-    height: 297mm !important; min-height: 0 !important;
+    display: block !important; position: static !important;
+    width: 210mm !important; height: 297mm !important; min-height: 297mm !important;
     margin: 0 !important; padding: 0 !important; overflow: hidden !important;
-    background: #08090b !important; color: #f5f5f5 !important;
-    font: 9pt/1.32 Arial, Helvetica, sans-serif !important;
+    background: #090a0c !important; color: #f5f5f5 !important;
+    font: 8.5pt/1.28 Arial, Helvetica, sans-serif !important;
+    break-after: avoid !important; page-break-after: avoid !important;
   }
+  #documentPrintArea, #documentPrintArea * { visibility: visible !important; }
   .print-sheet {
-    position: relative !important; display: block !important;
-    box-sizing: border-box !important; width: 210mm !important;
-    height: 297mm !important; min-height: 0 !important; max-height: 297mm !important;
-    margin: 0 !important; padding: 12mm 13mm 31mm !important;
-    overflow: hidden !important; break-before: avoid !important;
-    break-after: avoid !important; page-break-before: avoid !important;
-    page-break-after: avoid !important;
-    background: radial-gradient(ellipse at 82% 0%,rgba(255,204,0,.13),transparent 34%),#08090b !important;
-    color: #f5f5f5 !important;
+    display: flex !important; flex-direction: column !important;
+    box-sizing: border-box !important; position: relative !important;
+    width: 210mm !important; height: 297mm !important; min-height: 297mm !important;
+    max-height: 297mm !important; margin: 0 !important;
+    padding: 12mm 13mm 10mm !important; overflow: hidden !important;
+    background: radial-gradient(ellipse at 82% 0%,rgba(255,204,0,.12),transparent 35%),#090a0c !important;
+    color: #f5f5f5 !important; break-after: avoid !important; page-break-after: avoid !important;
   }
-  .print-head { display:flex !important; justify-content:space-between !important; align-items:flex-start !important; gap:10mm !important; padding:0 0 6mm !important; border-bottom:1px solid #d7aa00 !important; margin:0 0 6mm !important; }
-  .print-brand-block { display:flex !important; align-items:center !important; gap:4mm !important; }
-  .print-brand-mark { display:flex !important; align-items:center !important; justify-content:center !important; width:17mm !important; height:17mm !important; border:1.2mm solid #ffcc00 !important; border-radius:50% !important; color:#ffcc00 !important; font-size:25pt !important; font-weight:900 !important; }
-  .print-brand { font-size:22pt !important; font-weight:900 !important; letter-spacing:-.8pt !important; color:#fff !important; }
-  .print-brand span { color:#ffcc00 !important; }
-  .print-tagline { font-size:7.5pt !important; color:#c7c7c7 !important; margin-top:1mm !important; }
-  .print-meta { text-align:right !important; min-width:55mm !important; }
-  .print-kicker { font-size:6.5pt !important; letter-spacing:1.2pt !important; color:#ffcc00 !important; font-weight:700 !important; }
-  .print-meta h1 { font-size:25pt !important; line-height:1 !important; margin:2mm 0 !important; color:#fff !important; }
-  .print-number { display:inline-block !important; background:#ffcc00 !important; color:#08090b !important; border-radius:20mm !important; padding:1.3mm 4mm !important; font-weight:800 !important; font-size:9pt !important; margin-bottom:2mm !important; }
-  .print-meta-line { font-size:7.5pt !important; color:#ddd !important; }
-  .print-parties { display:grid !important; grid-template-columns:1fr 1fr !important; gap:6mm !important; margin:0 0 5mm !important; }
-  .print-party { border:1px solid #454545 !important; border-radius:3mm !important; background:linear-gradient(145deg,#17191c,#0e0f11) !important; padding:3.5mm !important; min-height:25mm !important; }
-  .print-party-title { font-size:7pt !important; letter-spacing:1pt !important; font-weight:800 !important; color:#ffcc00 !important; border-bottom:1px solid #454545 !important; padding-bottom:1.5mm !important; margin-bottom:1.5mm !important; }
-  .print-party-name { font-size:11pt !important; font-weight:800 !important; margin-bottom:1mm !important; color:#fff !important; }
-  .print-subject { display:flex !important; align-items:center !important; gap:4mm !important; border:1px solid #49443a !important; border-radius:3mm !important; padding:2.5mm 4mm !important; margin:0 0 5mm !important; background:linear-gradient(90deg,rgba(255,204,0,.13),rgba(255,255,255,.025)) !important; }
-  .print-subject span { font-size:7pt !important; font-weight:800 !important; letter-spacing:1pt !important; color:#ffcc00 !important; }
-  .print-table { width:100% !important; border-collapse:separate !important; border-spacing:0 !important; margin:0 0 5mm !important; font-size:8pt !important; }
-  .print-table th { background:#202226 !important; color:#ffcc00 !important; border-top:1px solid #b88e00 !important; border-bottom:1px solid #b88e00 !important; padding:2.5mm 2mm !important; text-align:left !important; }
-  .print-table th:first-child { border-left:1px solid #b88e00 !important; border-radius:2mm 0 0 0 !important; }
-  .print-table th:last-child { border-right:1px solid #b88e00 !important; border-radius:0 2mm 0 0 !important; }
-  .print-table td { padding:2.5mm 2mm !important; border-bottom:1px solid #383838 !important; color:#eee !important; }
-  .print-table .num { text-align:right !important; white-space:nowrap !important; }
-  .print-lower { position:relative !important; min-height:38mm !important; margin:0 0 5mm !important; display:flex !important; justify-content:flex-end !important; align-items:flex-start !important; }
-  .print-watermark { position:absolute !important; left:3mm !important; top:-7mm !important; font-size:82pt !important; line-height:1 !important; font-weight:900 !important; color:rgba(255,204,0,.075) !important; border:2mm solid rgba(255,204,0,.045) !important; border-radius:50% !important; width:40mm !important; height:40mm !important; text-align:center !important; }
-  .print-totals { position:relative !important; z-index:1 !important; width:85mm !important; border:1px solid #4b4b4b !important; border-radius:3mm !important; overflow:hidden !important; background:#101214 !important; }
-  .print-totals div { display:flex !important; justify-content:space-between !important; padding:2mm 4mm !important; border-bottom:1px solid #383838 !important; }
-  .print-totals .strong { background:#ffcc00 !important; color:#090a0c !important; font-weight:900 !important; font-size:11pt !important; border:0 !important; padding:2.5mm 4mm !important; }
-  .print-extra, .print-note, .print-terms { border:1px solid #454545 !important; border-radius:3mm !important; padding:3mm 4mm !important; margin:0 0 3mm !important; background:#121416 !important; break-inside:avoid !important; page-break-inside:avoid !important; }
-  .print-extra h3, .print-note strong, .print-terms strong { font-size:7pt !important; color:#ffcc00 !important; letter-spacing:1pt !important; margin:0 0 1.5mm !important; }
-  .print-extra-grid { display:grid !important; grid-template-columns:1fr 1fr !important; gap:2.5mm 6mm !important; }
-  .print-extra-grid div { display:flex !important; flex-direction:column !important; gap:1mm !important; }
-  .print-extra-grid b { font-size:7pt !important; color:#aaa !important; }
-  .print-note p, .print-terms p { margin:1mm 0 0 !important; }
-  .print-terms { white-space:pre-wrap !important; }
-  .print-foot { position:absolute !important; left:13mm !important; right:13mm !important; bottom:8mm !important; border-top:1px solid #d7aa00 !important; padding-top:3mm !important; text-align:center !important; }
-  .print-services { display:flex !important; justify-content:space-around !important; gap:4mm !important; font-size:7pt !important; color:#ddd !important; padding-bottom:3mm !important; }
-  .print-services span+span { border-left:1px solid #8c7200 !important; padding-left:5mm !important; }
-  .print-foot-brand { font-size:8pt !important; color:#fff !important; font-weight:700 !important; }
-  .print-foot-brand i { color:#ffcc00 !important; font-style:normal !important; }
-  .print-foot-brand span { display:block !important; font-weight:400 !important; color:#bbb !important; margin-top:1mm !important; }
-}
-
-/* SO INFO — interface simplifiée */
-.home-intro { margin:28px 0 22px; }
-.home-intro h2 { margin:0 0 7px; font-size:clamp(1.45rem,3vw,2rem); letter-spacing:-.04em; }
-.service-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
-.service-card { display:flex; align-items:center; gap:16px; min-height:112px; padding:20px; text-align:left; color:#f7f7f7; background:linear-gradient(145deg,#191a1c,#101112); border:1px solid #353535; border-radius:16px; cursor:pointer; transition:border-color .18s,transform .18s,background .18s; }
-.service-card:hover { border-color:#d6aa00; transform:translateY(-2px); background:linear-gradient(145deg,#201d12,#111); }
-.service-icon { display:grid; place-items:center; flex:0 0 48px; height:48px; border-radius:14px; color:#ffcc00; background:rgba(255,204,0,.1); font-size:25px; }
-.service-copy { display:flex; flex:1; min-width:0; flex-direction:column; gap:5px; }
-.service-copy strong { font-size:1.05rem; }
-.service-copy small { color:#aaa; font-size:.82rem; line-height:1.35; }
-.service-arrow { color:#ffcc00; font-size:1.35rem; }
-.tabs { margin-bottom:18px; }
-.view[hidden], #dashboard[hidden] { display:none !important; }
-@media(max-width:680px) {
- .service-grid { grid-template-columns:1fr; gap:10px; }
- .service-card { min-height:88px; padding:15px; }
- .home-intro { margin:18px 0; }
-}
-
-/* Impression A4 : une page compacte par défaut, pages supplémentaires uniquement si le contenu déborde réellement. */
-@page { size:A4 portrait; margin:8mm; }
-@media print {
- html,body { width:auto !important; height:auto !important; min-height:0 !important; margin:0 !important; padding:0 !important; overflow:visible !important; background:#090a0c !important; -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
- body * { visibility:hidden !important; }
- #documentPrintArea,#documentPrintArea * { visibility:visible !important; }
- #documentPrintArea { display:block !important; position:absolute !important; left:0 !important; top:0 !important; width:194mm !important; margin:0 !important; padding:0 !important; overflow:visible !important; background:#090a0c !important; color:#f5f5f5 !important; font:8.5pt/1.28 Arial,Helvetica,sans-serif !important; }
- .print-sheet { display:flex !important; flex-direction:column !important; box-sizing:border-box !important; width:194mm !important; min-height:281mm !important; height:auto !important; max-height:none !important; overflow:visible !important; position:relative !important; margin:0 !important; padding:8mm 9mm 7mm !important; background:radial-gradient(ellipse at 85% 0%,rgba(255,204,0,.12),transparent 35%),#090a0c !important; color:#f5f5f5 !important; break-after:avoid-page !important; page-break-after:avoid !important; }
- .p-header { display:flex !important; justify-content:space-between !important; align-items:flex-start !important; gap:8mm !important; padding:0 0 5mm !important; margin:0 0 5mm !important; border-bottom:1px solid #d6aa00 !important; }
- .p-brand { display:flex !important; align-items:center !important; gap:3mm !important; }
- .p-logo { display:grid !important; place-items:center !important; width:15mm !important; height:15mm !important; border:1mm solid #ffcc00 !important; border-radius:50% !important; color:#ffcc00 !important; font-size:22pt !important; font-weight:900 !important; }
- .p-brand-name { font-size:21pt !important; font-weight:900 !important; letter-spacing:-.8pt !important; color:#fff !important; }
- .p-brand-name em,.p-doc-meta h1,.p-label { color:#ffcc00 !important; font-style:normal !important; }
- .p-brand small { display:block !important; margin-top:1mm !important; color:#bbb !important; font-size:7pt !important; }
- .p-doc-meta { display:flex !important; flex-direction:column !important; align-items:flex-end !important; gap:1mm !important; text-align:right !important; }
- .p-doc-meta>small { color:#ffcc00 !important; letter-spacing:1.2pt !important; font-size:6pt !important; font-weight:800 !important; }
- .p-doc-meta h1 { margin:0 !important; font-size:23pt !important; line-height:1 !important; }
- .p-doc-meta>span { color:#ddd !important; font-size:7pt !important; }
- .p-number { display:inline-block !important; border-radius:20mm !important; padding:1.2mm 3.5mm !important; color:#08090b !important; background:#ffcc00 !important; font-size:8pt !important; }
- .p-parties { display:grid !important; grid-template-columns:1fr 1fr !important; gap:5mm !important; margin:0 0 4mm !important; }
- .p-panel { box-sizing:border-box !important; border:1px solid #414141 !important; border-radius:3mm !important; padding:3mm 3.5mm !important; background:linear-gradient(145deg,#191b1e,#111214) !important; break-inside:avoid !important; page-break-inside:avoid !important; }
- .p-label { margin:0 0 2mm !important; padding-bottom:1.5mm !important; border-bottom:1px solid #444 !important; font-size:6.5pt !important; font-weight:800 !important; letter-spacing:1.1pt !important; }
- .p-parties .p-panel { display:flex !important; flex-direction:column !important; gap:1mm !important; min-height:23mm !important; }
- .p-parties .p-panel b { color:#fff !important; font-size:9.5pt !important; }
- .p-parties .p-panel span { color:#ccc !important; font-size:7pt !important; }
- .p-subject { display:flex !important; gap:4mm !important; align-items:center !important; padding:2.5mm 3.5mm !important; margin:0 0 4mm !important; border:1px solid #4a432a !important; border-radius:2.5mm !important; background:rgba(255,204,0,.07) !important; }
- .p-subject small { color:#ffcc00 !important; font-size:6.5pt !important; font-weight:800 !important; letter-spacing:1pt !important; }
- .p-subject b { color:#fff !important; }
- .p-table { width:100% !important; border-collapse:collapse !important; margin:0 0 4mm !important; font-size:7.5pt !important; }
- .p-table th { padding:2.2mm 1.8mm !important; color:#ffcc00 !important; background:#202226 !important; border-top:1px solid #a88700 !important; border-bottom:1px solid #a88700 !important; text-align:left !important; }
- .p-table td { padding:2.2mm 1.8mm !important; border-bottom:1px solid #383838 !important; color:#eee !important; }
- .p-table .num { text-align:right !important; white-space:nowrap !important; }
- .p-total-wrap { display:flex !important; justify-content:flex-end !important; margin:0 0 4mm !important; }
- .p-total { width:78mm !important; border:1px solid #454545 !important; border-radius:2.5mm !important; overflow:hidden !important; background:#131518 !important; }
- .p-total>div { display:flex !important; justify-content:space-between !important; padding:2mm 3mm !important; border-bottom:1px solid #393939 !important; }
- .p-total .p-grand { color:#08090b !important; background:#ffcc00 !important; font-size:10pt !important; font-weight:900 !important; border:0 !important; }
- .p-note,.p-terms { margin:0 0 3mm !important; }
- .p-note p,.p-terms p { margin:0 !important; white-space:pre-wrap !important; color:#eee !important; font-size:7.5pt !important; }
- .p-fields { display:grid !important; grid-template-columns:1fr 1fr !important; gap:3mm 6mm !important; }
- .p-fields>div { display:flex !important; flex-direction:column !important; gap:1mm !important; min-height:10mm !important; }
- .p-fields .wide { grid-column:1/-1 !important; min-height:13mm !important; }
- .p-fields small { color:#aaa !important; font-size:6.5pt !important; }
- .p-fields b { color:#f5f5f5 !important; font-size:8pt !important; font-weight:500 !important; white-space:pre-wrap !important; }
- .p-signatures { display:grid !important; grid-template-columns:1fr 1fr !important; gap:6mm !important; margin:2mm 0 0 !important; }
- .p-signatures>div { min-height:25mm !important; padding:3mm !important; border:1px solid #555 !important; border-radius:2mm !important; display:flex !important; flex-direction:column !important; gap:2mm !important; }
- .p-signatures b { font-size:7pt !important; color:#ffcc00 !important; }
- .p-signatures small { color:#aaa !important; font-size:6pt !important; }
- .p-footer { margin-top:auto !important; padding-top:3mm !important; border-top:1px solid #c49c00 !important; text-align:center !important; color:#bbb !important; }
- .p-footer>div { margin-bottom:2mm !important; font-size:6pt !important; letter-spacing:.3pt !important; }
- .p-footer i,.p-footer em { color:#ffcc00 !important; font-style:normal !important; }
- .p-footer>b { display:block !important; color:#fff !important; font-size:7pt !important; }
- .p-footer>small { display:block !important; margin-top:1mm !important; font-size:6.5pt !important; }
+  .p-header { display:flex !important; justify-content:space-between !important; align-items:flex-start !important; gap:8mm !important; padding:0 0 5mm !important; margin:0 0 5mm !important; border-bottom:1px solid #d6aa00 !important; }
+  .p-brand { display:flex !important; align-items:center !important; gap:3mm !important; }
+  .p-logo { display:grid !important; place-items:center !important; width:15mm !important; height:15mm !important; border:1mm solid #ffcc00 !important; border-radius:50% !important; color:#ffcc00 !important; font-size:22pt !important; font-weight:900 !important; }
+  .p-brand-name { font-size:21pt !important; font-weight:900 !important; letter-spacing:-.8pt !important; color:#fff !important; }
+  .p-brand-name em,.p-doc-meta h1,.p-label { color:#ffcc00 !important; font-style:normal !important; }
+  .p-brand small { display:block !important; margin-top:1mm !important; color:#bbb !important; font-size:7pt !important; }
+  .p-doc-meta { display:flex !important; flex-direction:column !important; align-items:flex-end !important; gap:1mm !important; text-align:right !important; }
+  .p-doc-meta>small { color:#ffcc00 !important; letter-spacing:1.2pt !important; font-size:6pt !important; font-weight:800 !important; }
+  .p-doc-meta h1 { margin:0 !important; font-size:23pt !important; line-height:1 !important; }
+  .p-doc-meta>span { color:#ddd !important; font-size:7pt !important; }
+  .p-number { display:inline-block !important; border-radius:20mm !important; padding:1.2mm 3.5mm !important; color:#08090b !important; background:#ffcc00 !important; font-size:8pt !important; }
+  .p-parties { display:grid !important; grid-template-columns:1fr 1fr !important; gap:5mm !important; margin:0 0 4mm !important; }
+  .p-panel { box-sizing:border-box !important; border:1px solid #414141 !important; border-radius:3mm !important; padding:3mm 3.5mm !important; background:linear-gradient(145deg,#191b1e,#111214) !important; break-inside:avoid !important; page-break-inside:avoid !important; }
+  .p-label { margin:0 0 2mm !important; padding-bottom:1.5mm !important; border-bottom:1px solid #444 !important; font-size:6.5pt !important; font-weight:800 !important; letter-spacing:1.1pt !important; }
+  .p-parties .p-panel { display:flex !important; flex-direction:column !important; gap:1mm !important; min-height:23mm !important; }
+  .p-parties .p-panel b { color:#fff !important; font-size:9.5pt !important; }
+  .p-parties .p-panel span { color:#ccc !important; font-size:7pt !important; }
+  .p-subject { display:flex !important; gap:4mm !important; align-items:center !important; padding:2.5mm 3.5mm !important; margin:0 0 4mm !important; border:1px solid #4a432a !important; border-radius:2.5mm !important; background:rgba(255,204,0,.07) !important; }
+  .p-subject small { color:#ffcc00 !important; font-size:6.5pt !important; font-weight:800 !important; letter-spacing:1pt !important; }
+  .p-subject b { color:#fff !important; }
+  .p-table { width:100% !important; border-collapse:collapse !important; margin:0 0 4mm !important; font-size:7.5pt !important; }
+  .p-table th { padding:2.2mm 1.8mm !important; color:#ffcc00 !important; background:#202226 !important; border-top:1px solid #a88700 !important; border-bottom:1px solid #a88700 !important; text-align:left !important; }
+  .p-table td { padding:2.2mm 1.8mm !important; border-bottom:1px solid #383838 !important; color:#eee !important; }
+  .p-table .num { text-align:right !important; white-space:nowrap !important; }
+  .p-total-wrap { display:flex !important; justify-content:flex-end !important; margin:0 0 4mm !important; }
+  .p-total { width:78mm !important; border:1px solid #454545 !important; border-radius:2.5mm !important; overflow:hidden !important; background:#131518 !important; }
+  .p-total>div { display:flex !important; justify-content:space-between !important; padding:2mm 3mm !important; border-bottom:1px solid #393939 !important; }
+  .p-total .p-grand { color:#08090b !important; background:#ffcc00 !important; font-size:10pt !important; font-weight:900 !important; border:0 !important; }
+  .p-note,.p-terms { margin:0 0 3mm !important; }
+  .p-note p,.p-terms p { margin:0 !important; white-space:pre-wrap !important; color:#eee !important; font-size:7.5pt !important; }
+  .p-fields { display:grid !important; grid-template-columns:1fr 1fr !important; gap:3mm 6mm !important; }
+  .p-fields>div { display:flex !important; flex-direction:column !important; gap:1mm !important; min-height:10mm !important; }
+  .p-fields .wide { grid-column:1/-1 !important; min-height:13mm !important; }
+  .p-fields small { color:#aaa !important; font-size:6.5pt !important; }
+  .p-fields b { color:#f5f5f5 !important; font-size:8pt !important; font-weight:500 !important; white-space:pre-wrap !important; }
+  .p-signatures { display:grid !important; grid-template-columns:1fr 1fr !important; gap:6mm !important; margin:2mm 0 0 !important; }
+  .p-signatures>div { min-height:25mm !important; padding:3mm !important; border:1px solid #555 !important; border-radius:2mm !important; display:flex !important; flex-direction:column !important; gap:2mm !important; }
+  .p-signatures b { font-size:7pt !important; color:#ffcc00 !important; }
+  .p-signatures small { color:#aaa !important; font-size:6pt !important; }
+  .p-footer { margin-top:auto !important; padding-top:3mm !important; border-top:1px solid #c49c00 !important; text-align:center !important; color:#bbb !important; }
+  .p-footer>div { margin-bottom:2mm !important; font-size:6pt !important; letter-spacing:.3pt !important; }
+  .p-footer i,.p-footer em { color:#ffcc00 !important; font-style:normal !important; }
+  .p-footer>b { display:block !important; color:#fff !important; font-size:7pt !important; }
+  .p-footer>small { display:block !important; margin-top:1mm !important; font-size:6.5pt !important; }
 }
