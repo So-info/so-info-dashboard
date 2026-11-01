@@ -144,26 +144,94 @@
 @media(max-width:600px){.client-stamp-grid{gap:4px}.client-stamp{font-size:.72rem}.client-loyalty-card{padding:14px}.client-loyalty-actions .btn{flex:1 1 100%}.loyalty-chip{font-size:.53rem}}
 
 
-/* V4 — titre atelier explicitement sur deux lignes pour l'impression A4 */
-@media print{
-  #documentPrintArea .p-doc-meta{
-    min-width:0!important;
-    width:100%!important;
-    max-width:100%!important;
+/* V5 — correction réelle de la largeur d'en-tête + mise en page compacte A4 */
+@page { size: A4 portrait; margin: 9mm 10mm 9mm; }
+@media print {
+  html, body {
+    width:100%!important; min-width:0!important; max-width:100%!important;
+    margin:0!important; padding:0!important; overflow:visible!important;
+  }
+  #documentPrintArea {
+    display:block!important; width:100%!important; max-width:100%!important;
+    min-width:0!important; margin:0!important; padding:0!important;
     overflow:visible!important;
   }
-  #documentPrintArea .p-doc-meta h1{
-    display:block!important;
-    width:100%!important;
-    max-width:100%!important;
-    min-width:0!important;
-    font-size:18pt!important;
-    line-height:1.02!important;
-    white-space:normal!important;
+  #documentPrintArea .print-sheet {
+    width:100%!important; max-width:100%!important; min-width:0!important;
+    height:auto!important; min-height:0!important; max-height:none!important;
+    margin:0!important; padding:0!important; overflow:visible!important;
+    break-after:auto!important; page-break-after:auto!important;
+  }
+
+  /* Colonnes dont la somme est exactement 100 %, gap inclus */
+  #documentPrintArea .p-header {
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    column-gap:6mm!important;
+    align-items:center!important;
+    width:100%!important; max-width:100%!important; min-width:0!important;
+    margin:0 0 4mm!important; padding:0 0 4mm!important;
     overflow:visible!important;
-    overflow-wrap:normal!important;
-    word-break:normal!important;
+  }
+  #documentPrintArea .p-brand {
+    display:flex!important; flex-direction:row!important;
+    align-items:center!important; gap:3mm!important;
+    width:100%!important; max-width:100%!important; min-width:0!important;
+    overflow:visible!important;
+  }
+  #documentPrintArea .p-logo {
+    flex:0 0 15mm!important; width:15mm!important; height:15mm!important;
+  }
+  #documentPrintArea .p-brand>div {
+    flex:1 1 auto!important; min-width:0!important; max-width:100%!important;
+  }
+  #documentPrintArea .p-brand-name {
+    white-space:nowrap!important; font-size:21pt!important;
+    line-height:1!important; letter-spacing:-.6pt!important;
+  }
+  #documentPrintArea .p-brand small {
+    white-space:normal!important; font-size:7pt!important;
+    line-height:1.15!important;
+  }
+  #documentPrintArea .p-doc-meta {
+    display:flex!important; flex-direction:column!important;
+    align-items:flex-end!important; justify-content:center!important;
+    width:100%!important; max-width:100%!important; min-width:0!important;
+    text-align:right!important; overflow:visible!important;
+  }
+  #documentPrintArea .p-doc-meta h1 {
+    display:block!important; width:100%!important;
+    max-width:100%!important; min-width:0!important;
+    margin:0!important; font-size:17pt!important;
+    line-height:1.02!important; letter-spacing:-.3pt!important;
+    white-space:normal!important; overflow:visible!important;
+    overflow-wrap:anywhere!important; word-break:normal!important;
     text-align:right!important;
   }
-  #documentPrintArea .p-doc-meta h1 br{display:block!important}
+  #documentPrintArea .p-doc-meta>small,
+  #documentPrintArea .p-doc-meta>span,
+  #documentPrintArea .p-number {
+    max-width:100%!important; white-space:normal!important;
+    overflow-wrap:anywhere!important;
+  }
+
+  /* Réduire les espacements verticaux pour garder le pied de page sur A4 */
+  #documentPrintArea .p-parties { gap:4mm!important; margin:0 0 4mm!important; }
+  #documentPrintArea .p-panel { padding:3mm!important; }
+  #documentPrintArea .p-label { margin-bottom:2mm!important; padding-bottom:1.5mm!important; }
+  #documentPrintArea .p-subject { margin:0 0 4mm!important; padding:3mm!important; }
+  #documentPrintArea .p-equipment { margin:0 0 4mm!important; padding:3mm!important; }
+  #documentPrintArea .p-terms { margin:0 0 4mm!important; padding:3mm!important; }
+  #documentPrintArea .p-signatures { gap:4mm!important; margin:0 0 4mm!important; }
+  #documentPrintArea .p-signatures>div { min-height:24mm!important; padding:3mm!important; }
+  #documentPrintArea .p-footer {
+    margin-top:4mm!important; padding-top:3mm!important;
+    break-inside:avoid!important; page-break-inside:avoid!important;
+  }
+  #documentPrintArea section,
+  #documentPrintArea .p-panel,
+  #documentPrintArea .p-signatures,
+  #documentPrintArea .p-footer {
+    break-inside:avoid!important; page-break-inside:avoid!important;
+  }
 }
