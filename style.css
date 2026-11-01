@@ -348,3 +348,158 @@ footer{border-top:1px solid #20252c;margin-top:22px;padding:20px 0;color:#66707c
 .client-loyalty-empty{padding:15px;border:1px dashed #665400;border-radius:12px}
 .client-loyalty-empty p{margin:5px 0 0}
 @media(max-width:600px){.client-stamp-grid{gap:4px}.client-stamp{font-size:.72rem}.client-loyalty-card{padding:14px}.client-loyalty-actions .btn{flex:1 1 100%}.loyalty-chip{font-size:.53rem}}
+
+
+/* SO INFO — correctif impression A4 : papier blanc, traits noirs, sans pages vides */
+@page {
+  size: A4 portrait;
+  margin: 10mm;
+}
+@media print {
+  html, body {
+    width: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    color: #111 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    display: block !important;
+  }
+
+  .app-shell, #dashboard, #view-documents {
+    display: block !important;
+    width: auto !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  #documentPrintArea {
+    display: block !important;
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+    color: #111 !important;
+    font: 9pt/1.3 Arial, Helvetica, sans-serif !important;
+    break-after: auto !important;
+    page-break-after: auto !important;
+  }
+
+  #documentPrintArea, #documentPrintArea * {
+    visibility: visible !important;
+    box-sizing: border-box !important;
+    text-shadow: none !important;
+  }
+
+  .print-sheet {
+    display: flex !important;
+    flex-direction: column !important;
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 277mm !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+    color: #111 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    break-after: auto !important;
+    page-break-after: auto !important;
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  .p-header {
+    border-bottom: 1.2pt solid #111 !important;
+  }
+  .p-brand-name, .p-parties .p-panel b, .p-subject b,
+  .p-fields b, .p-footer>b {
+    color: #111 !important;
+  }
+  .p-brand small, .p-doc-meta>span, .p-parties .p-panel span,
+  .p-note p, .p-terms p, .p-fields small, .p-signatures small,
+  .p-footer, .p-footer>small {
+    color: #333 !important;
+  }
+  .p-brand-name em, .p-doc-meta h1, .p-label,
+  .p-doc-meta>small, .p-subject small, .p-signatures b {
+    color: #8a6d00 !important;
+  }
+  .p-logo {
+    color: #111 !important;
+    border-color: #111 !important;
+  }
+  .p-number, .p-total .p-grand {
+    background: #ffd000 !important;
+    color: #111 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .p-panel, .p-total, .p-signatures>div {
+    background: #fff !important;
+    color: #111 !important;
+    border: 1px solid #222 !important;
+    box-shadow: none !important;
+  }
+  .p-label {
+    border-bottom: 1px solid #222 !important;
+  }
+  .p-subject {
+    background: #fff !important;
+    border: 1px solid #222 !important;
+  }
+  .p-table th, .p-table td {
+    background: #fff !important;
+    color: #111 !important;
+    border-color: #222 !important;
+  }
+  .p-table th {
+    border-top: 1px solid #111 !important;
+    border-bottom: 1px solid #111 !important;
+    color: #111 !important;
+  }
+  .p-total {
+    background: #fff !important;
+    border-color: #222 !important;
+  }
+  .p-total>div {
+    border-bottom: 1px solid #bbb !important;
+    color: #111 !important;
+  }
+  .p-fields small, .p-fields b,
+  .p-signatures b, .p-footer>div, .p-footer>b {
+    color: #111 !important;
+  }
+  .p-footer {
+    border-top: 1px solid #111 !important;
+    margin-top: auto !important;
+  }
+  .p-footer i, .p-footer em {
+    color: #8a6d00 !important;
+  }
+
+  .p-header, .p-parties, .p-subject, .p-panel,
+  .p-table, .p-total-wrap, .p-signatures {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
