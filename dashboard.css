@@ -92,5 +92,5 @@ dialog[open]{animation:up .25s cubic-bezier(.2,.8,.2,1);display:flex;flex-direct
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media print{.app,.nav,dialog,.toast{display:none!important}}
 
-html,body{max-width:100%;overflow-x:hidden;overscroll-behavior-x:none}
+html,body{max-width:100%;overflow-x:clip}
 .app{overflow-x:clip}.view>*,.stats>*,.actions-grid>*,.list>*,.grid2>*,.item>*,.row>*{min-width:0}.sheet{overflow-x:hidden}
