@@ -18,7 +18,7 @@ h2{font-size:1.25rem;letter-spacing:-.03em;margin:0;font-weight:800}h3{margin:0;
 .card{background:var(--s1);border:1px solid var(--line);border-radius:20px;padding:20px}
 .login{max-width:440px;margin:8vh auto}
 label{display:block;font-size:.8rem;font-weight:700;color:#d8d3c5;margin:12px 0 0}
-input,select,textarea{display:block;width:100%;margin-top:6px;padding:12px 14px;min-height:48px;background:#0b0b09;border:1px solid #3a372f;border-radius:13px;outline:0}
+input,select,textarea{font-size:16px;max-width:100%;min-width:0;display:block;width:100%;margin-top:6px;padding:12px 14px;min-height:48px;background:#0b0b09;border:1px solid #3a372f;border-radius:13px;outline:0}
 input:focus,select:focus,textarea:focus{border-color:var(--y);box-shadow:0 0 0 3px #ffd00022}textarea{resize:vertical}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:10px 20px;border-radius:14px;border:1px solid #4a4638;background:var(--s2);font-weight:700;transition:transform .15s,background .15s}
 .btn:active{transform:scale(.97)}.btn.primary{background:linear-gradient(180deg,var(--y2),var(--y));color:#0a0a09;border-color:var(--y)}.btn.ghost:hover{border-color:var(--y);color:var(--y)}
@@ -91,3 +91,6 @@ dialog[open]{animation:up .25s cubic-bezier(.2,.8,.2,1);display:flex;flex-direct
 @media(max-width:420px){.grid2{grid-template-columns:1fr}.stat strong{font-size:1.45rem}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media print{.app,.nav,dialog,.toast{display:none!important}}
+
+html,body{max-width:100%;overflow-x:hidden;overscroll-behavior-x:none}
+.app{overflow-x:clip}.view>*,.stats>*,.actions-grid>*,.list>*,.grid2>*,.item>*,.row>*{min-width:0}.sheet{overflow-x:hidden}

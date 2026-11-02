@@ -1,215 +1,46 @@
-@page { size: A4 portrait; margin: 12mm 13mm 13mm; }
-@page { size: A4 portrait; margin: 9mm 10mm 9mm; }
-@page { size:A4 portrait; margin:10mm; }
-@media print {
-  html, body { width:auto!important; min-width:0!important; height:auto!important; min-height:0!important; margin:0!important; padding:0!important; overflow:visible!important; background:#fff!important; color:#171717!important; }
-  body { display:block!important; font:9pt/1.38 Arial,Helvetica,sans-serif!important; -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
-  .app-shell { display:block!important; width:auto!important; max-width:none!important; min-height:0!important; margin:0!important; padding:0!important; overflow:visible!important; background:#fff!important; box-shadow:none!important; }
-  .app-shell > .top, .app-shell > #login, .app-shell > footer,
-  #dashboard > .welcome, #dashboard > .tabs, #dashboard > #view-overview,
-  #dashboard > #view-clients, #dashboard > #view-loyalty, #dashboard > #view-settings,
-  #dashboard > #appMessage, #view-documents > *:not(#documentPrintArea) { display:none!important; }
-  #dashboard, #view-documents { display:block!important; width:auto!important; margin:0!important; padding:0!important; min-height:0!important; overflow:visible!important; }
-  #documentPrintArea { display:block!important; position:static!important; width:auto!important; height:auto!important; min-height:0!important; margin:0!important; padding:0!important; overflow:visible!important; background:#fff!important; color:#171717!important; font:9pt/1.38 Arial,Helvetica,sans-serif!important; }
-  #documentPrintArea, #documentPrintArea * { visibility:visible!important; box-sizing:border-box!important; }
-  .print-sheet { display:block!important; position:relative!important; width:auto!important; height:auto!important; min-height:0!important; max-height:none!important; margin:0!important; padding:0!important; overflow:visible!important; background:#fff!important; color:#171717!important; break-after:auto!important; page-break-after:auto!important; }
-  .p-header { display:flex!important; justify-content:space-between!important; align-items:center!important; gap:12mm!important; padding:0 0 7mm!important; margin:0 0 7mm!important; border-bottom:2px solid #171717!important; }
-  .p-brand { display:flex!important; align-items:center!important; gap:4mm!important; }
-  .p-logo { display:grid!important; place-items:center!important; flex:0 0 17mm!important; width:17mm!important; height:17mm!important; border:1.2mm solid #171717!important; border-radius:50%!important; color:#171717!important; font-size:24pt!important; line-height:1!important; font-weight:900!important; background:#fff!important; }
-  .p-brand-name { font-size:24pt!important; line-height:1!important; font-weight:900!important; letter-spacing:-1pt!important; color:#171717!important; }
-  .p-brand-name em { color:#b58d00!important; font-style:normal!important; }
-  .p-brand small { display:block!important; margin-top:2mm!important; color:#555!important; font-size:8pt!important; }
-  .p-doc-meta { display:flex!important; flex-direction:column!important; align-items:flex-end!important; gap:1mm!important; text-align:right!important; }
-  .p-doc-meta>small { color:#8a6b00!important; letter-spacing:1.4pt!important; font-size:7pt!important; font-weight:800!important; }
-  .p-doc-meta h1 { margin:0!important; color:#171717!important; font-size:25pt!important; line-height:1!important; letter-spacing:-.7pt!important; }
-  .p-doc-meta>span { color:#555!important; font-size:8pt!important; }
-  .p-number { display:inline-block!important; margin-top:1mm!important; border:1px solid #171717!important; border-radius:2mm!important; padding:1.5mm 4mm!important; color:#171717!important; background:#fff!important; font-size:9pt!important; font-weight:800!important; }
-  .p-parties { display:grid!important; grid-template-columns:1fr 1fr!important; gap:6mm!important; margin:0 0 6mm!important; }
-  .p-panel { border:1px solid #333!important; border-radius:2mm!important; padding:4mm!important; background:#fff!important; color:#171717!important; break-inside:avoid!important; page-break-inside:avoid!important; }
-  .p-label { margin:0 0 3mm!important; padding:0 0 2mm!important; border-bottom:1px solid #777!important; color:#8a6b00!important; font-size:7pt!important; font-weight:900!important; letter-spacing:1.2pt!important; }
-  .p-parties .p-panel { display:flex!important; flex-direction:column!important; gap:1mm!important; min-height:27mm!important; }
-  .p-parties .p-panel>b { margin-bottom:1mm!important; font-size:11pt!important; color:#171717!important; }
-  .p-parties .p-panel>span { color:#444!important; font-size:8pt!important; }
-  .p-subject { display:flex!important; align-items:baseline!important; gap:5mm!important; margin:0 0 6mm!important; padding:3.5mm 4mm!important; border:1px solid #333!important; border-left:3px solid #c49a00!important; border-radius:1.5mm!important; background:#fff!important; color:#171717!important; }
-  .p-subject small { color:#8a6b00!important; font-size:7pt!important; font-weight:900!important; letter-spacing:1.2pt!important; }
-  .p-subject b { color:#171717!important; font-size:10pt!important; }
-  .p-table { width:100%!important; border-collapse:collapse!important; margin:0 0 5mm!important; color:#171717!important; font-size:8.5pt!important; }
-  .p-table th { padding:3mm 2mm!important; border-top:1.5px solid #171717!important; border-bottom:1px solid #171717!important; background:#f3f3f3!important; color:#171717!important; text-align:left!important; font-weight:800!important; }
-  .p-table td { padding:3mm 2mm!important; border-bottom:1px solid #bbb!important; color:#222!important; }
-  .p-table .num { text-align:right!important; white-space:nowrap!important; }
-  .p-total-wrap { display:flex!important; justify-content:flex-end!important; margin:0 0 6mm!important; }
-  .p-total { width:78mm!important; border:1px solid #333!important; border-radius:2mm!important; overflow:hidden!important; background:#fff!important; color:#171717!important; }
-  .p-total>div { display:flex!important; justify-content:space-between!important; gap:8mm!important; padding:2.5mm 3.5mm!important; border-bottom:1px solid #ddd!important; }
-  .p-total>div:last-child { border-bottom:0!important; }
-  .p-total .p-grand { background:#f3c900!important; color:#111!important; font-size:11pt!important; font-weight:900!important; }
-  .p-total b { color:inherit!important; }
-  .p-note,.p-terms,.p-equipment { margin:0 0 5mm!important; }
-  .p-panel p { margin:0!important; color:#333!important; font-size:8.5pt!important; white-space:pre-wrap!important; }
-  .p-fields { display:grid!important; grid-template-columns:1fr 1fr!important; gap:4mm 8mm!important; }
-  .p-fields>div { display:flex!important; flex-direction:column!important; gap:1mm!important; min-width:0!important; }
-  .p-fields .wide { grid-column:1/-1!important; }
-  .p-fields small { color:#666!important; font-size:7.5pt!important; }
-  .p-fields b { color:#171717!important; font-size:9pt!important; font-weight:600!important; white-space:pre-wrap!important; }
-  .p-signatures { display:grid!important; grid-template-columns:1fr 1fr!important; gap:6mm!important; margin:7mm 0 0!important; break-inside:avoid!important; page-break-inside:avoid!important; }
-  .p-signatures>div { min-height:32mm!important; padding:3mm!important; border:1px solid #333!important; border-radius:2mm!important; background:#fff!important; }
-  .p-signatures b { display:block!important; margin-bottom:2mm!important; color:#171717!important; font-size:8.5pt!important; }
-  .p-signatures small { color:#666!important; font-size:7pt!important; }
-  .p-footer { display:block!important; margin:8mm 0 0!important; padding:4mm 0 0!important; border-top:1px solid #777!important; text-align:center!important; color:#555!important; break-inside:avoid!important; page-break-inside:avoid!important; }
-  .p-footer>div { margin-bottom:2mm!important; color:#666!important; font-size:7pt!important; letter-spacing:.4pt!important; }
-  .p-footer b { display:block!important; color:#171717!important; font-size:8.5pt!important; }
-  .p-footer em { color:#b58d00!important; font-style:normal!important; }
-  .p-footer small { color:#555!important; font-size:7.5pt!important; }
-  .p-panel,.p-subject,.p-total,.p-signatures,.p-footer { break-inside:avoid!important; page-break-inside:avoid!important; }
-}
-@media print {
-  html, body {
-    width:100%!important; min-width:0!important; max-width:100%!important;
-    margin:0!important; padding:0!important; overflow:visible!important;
-  }
-  #documentPrintArea {
-    display:block!important; width:100%!important; max-width:100%!important;
-    min-width:0!important; margin:0!important; padding:0!important;
-    overflow:visible!important;
-  }
-  #documentPrintArea .print-sheet {
-    width:100%!important; max-width:100%!important; min-width:0!important;
-    height:auto!important; min-height:0!important; max-height:none!important;
-    margin:0!important; padding:0!important; overflow:visible!important;
-    break-after:auto!important; page-break-after:auto!important;
-  }
-
-  /* Colonnes dont la somme est exactement 100 %, gap inclus */
-  #documentPrintArea .p-header {
-    display:grid!important;
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
-    column-gap:6mm!important;
-    align-items:center!important;
-    width:100%!important; max-width:100%!important; min-width:0!important;
-    margin:0 0 4mm!important; padding:0 0 4mm!important;
-    overflow:visible!important;
-  }
-  #documentPrintArea .p-brand {
-    display:flex!important; flex-direction:row!important;
-    align-items:center!important; gap:3mm!important;
-    width:100%!important; max-width:100%!important; min-width:0!important;
-    overflow:visible!important;
-  }
-  #documentPrintArea .p-logo {
-    flex:0 0 15mm!important; width:15mm!important; height:15mm!important;
-  }
-  #documentPrintArea .p-brand>div {
-    flex:1 1 auto!important; min-width:0!important; max-width:100%!important;
-  }
-  #documentPrintArea .p-brand-name {
-    white-space:nowrap!important; font-size:21pt!important;
-    line-height:1!important; letter-spacing:-.6pt!important;
-  }
-  #documentPrintArea .p-brand small {
-    white-space:normal!important; font-size:7pt!important;
-    line-height:1.15!important;
-  }
-  #documentPrintArea .p-doc-meta {
-    display:flex!important; flex-direction:column!important;
-    align-items:flex-end!important; justify-content:center!important;
-    width:100%!important; max-width:100%!important; min-width:0!important;
-    text-align:right!important; overflow:visible!important;
-  }
-  #documentPrintArea .p-doc-meta h1 {
-    display:block!important; width:100%!important;
-    max-width:100%!important; min-width:0!important;
-    margin:0!important; font-size:17pt!important;
-    line-height:1.02!important; letter-spacing:-.3pt!important;
-    white-space:normal!important; overflow:visible!important;
-    overflow-wrap:anywhere!important; word-break:normal!important;
-    text-align:right!important;
-  }
-  #documentPrintArea .p-doc-meta>small,
-  #documentPrintArea .p-doc-meta>span,
-  #documentPrintArea .p-number {
-    max-width:100%!important; white-space:normal!important;
-    overflow-wrap:anywhere!important;
-  }
-
-  /* Réduire les espacements verticaux pour garder le pied de page sur A4 */
-  #documentPrintArea .p-parties { gap:4mm!important; margin:0 0 4mm!important; }
-  #documentPrintArea .p-panel { padding:3mm!important; }
-  #documentPrintArea .p-label { margin-bottom:2mm!important; padding-bottom:1.5mm!important; }
-  #documentPrintArea .p-subject { margin:0 0 4mm!important; padding:3mm!important; }
-  #documentPrintArea .p-equipment { margin:0 0 4mm!important; padding:3mm!important; }
-  #documentPrintArea .p-terms { margin:0 0 4mm!important; padding:3mm!important; }
-  #documentPrintArea .p-signatures { gap:4mm!important; margin:0 0 4mm!important; }
-  #documentPrintArea .p-signatures>div { min-height:24mm!important; padding:3mm!important; }
-  #documentPrintArea .p-footer {
-    margin-top:4mm!important; padding-top:3mm!important;
-    break-inside:avoid!important; page-break-inside:avoid!important;
-  }
-  #documentPrintArea section,
-  #documentPrintArea .p-panel,
-  #documentPrintArea .p-signatures,
-  #documentPrintArea .p-footer {
-    break-inside:avoid!important; page-break-inside:avoid!important;
-  }
-}
-@media print {
-  html, body {
-    display:block!important; position:static!important;
-    width:auto!important; min-width:0!important; max-width:none!important;
-    height:auto!important; min-height:0!important; margin:0!important;
-    padding:0!important; overflow:visible!important; background:#fff!important;
-  }
-  body.so-info-printing > *:not(#so-info-print-root) {
-    display:none!important;
-  }
-  body.so-info-printing > #so-info-print-root {
-    display:block!important; position:static!important; float:none!important;
-    width:100%!important; max-width:100%!important; min-width:0!important;
-    height:auto!important; min-height:0!important; margin:0!important;
-    padding:0!important; overflow:visible!important; background:#fff!important;
-    color:#171717!important; box-sizing:border-box!important;
-  }
-  #so-info-print-root, #so-info-print-root * {
-    box-sizing:border-box!important; max-width:100%!important;
-    min-width:0!important; visibility:visible!important;
-  }
-  #so-info-print-root .print-sheet {
-    display:block!important; position:static!important; float:none!important;
-    width:100%!important; max-width:100%!important; min-width:0!important;
-    height:auto!important; min-height:0!important; max-height:none!important;
-    margin:0!important; padding:0!important; overflow:visible!important;
-    background:#fff!important; color:#171717!important;
-    break-after:auto!important; page-break-after:auto!important;
-  }
-  #so-info-print-root .p-header {
-    display:grid!important; grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
-    gap:5mm!important; width:100%!important; min-width:0!important;
-    margin:0 0 5mm!important; padding:0 0 4mm!important;
-    align-items:center!important; overflow:visible!important;
-  }
-  #so-info-print-root .p-brand {
-    display:flex!important; flex-direction:row!important; align-items:center!important;
-    gap:3mm!important; min-width:0!important; width:100%!important;
-  }
-  #so-info-print-root .p-brand>div { min-width:0!important; flex:1 1 auto!important; }
-  #so-info-print-root .p-logo { flex:0 0 15mm!important; width:15mm!important; height:15mm!important; }
-  #so-info-print-root .p-brand-name { font-size:21pt!important; white-space:nowrap!important; }
-  #so-info-print-root .p-doc-meta {
-    display:flex!important; flex-direction:column!important; align-items:flex-end!important;
-    width:100%!important; min-width:0!important; max-width:100%!important;
-    text-align:right!important; overflow:visible!important;
-  }
-  #so-info-print-root .p-doc-meta h1 {
-    display:block!important; width:100%!important; min-width:0!important;
-    max-width:100%!important; margin:0!important; font-size:19pt!important;
-    line-height:1.05!important; white-space:normal!important;
-    overflow-wrap:anywhere!important; word-break:normal!important;
-    text-align:right!important;
-  }
-  #so-info-print-root .p-doc-meta>span,
-  #so-info-print-root .p-number { white-space:normal!important; overflow-wrap:anywhere!important; }
-  #so-info-print-root .p-parties { grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important; gap:4mm!important; }
-  #so-info-print-root .p-panel { padding:3mm!important; }
-  #so-info-print-root .p-footer { break-inside:avoid!important; page-break-inside:avoid!important; }
-  #so-info-print-root table { width:100%!important; table-layout:fixed!important; }
-  #so-info-print-root th, #so-info-print-root td { overflow-wrap:anywhere!important; }
-}
+/* SO INFO — rendu d'impression A4 (devis, factures, prises en charge) */
 #so-info-print-root{display:none}
+@page{size:A4 portrait;margin:12mm 13mm 14mm}
+@media print{
+ html,body{margin:0!important;padding:0!important;background:#fff!important;width:auto!important;overflow:visible!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ body.so-info-printing>*:not(#so-info-print-root){display:none!important}
+ body.so-info-printing>#so-info-print-root{display:block!important}
+}
+.pd{font:9.5pt/1.45 "Helvetica Neue",Helvetica,Arial,sans-serif;color:#1a1a1a;width:100%}
+.pd *{box-sizing:border-box}
+.pd-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10mm}
+.pd-brand{display:flex;align-items:center;gap:4mm}
+.pd-logo{width:15mm;height:15mm;border:1.2mm solid #111;border-radius:50%;display:flex;align-items:center;justify-content:center;font:800 20pt/1 Arial,sans-serif;color:#111}
+.pd-name{font:800 20pt/1 Arial,sans-serif;letter-spacing:-.02em;color:#111}.pd-name em{font-style:normal;color:#d9a900}
+.pd-tag{margin-top:1.5mm;font-size:8pt;color:#666}
+.pd-meta{text-align:right}
+.pd-type{font:800 19pt/1 Arial,sans-serif;letter-spacing:.02em;color:#111;text-transform:uppercase}
+.pd-num{margin-top:2mm;font:700 10.5pt Arial,sans-serif;color:#111}
+.pd-meta dl{margin:2mm 0 0;display:grid;grid-template-columns:auto auto;gap:.6mm 4mm;justify-content:end;font-size:8.5pt}
+.pd-meta dt{color:#777;text-align:right}.pd-meta dd{margin:0;font-weight:700;text-align:right}
+.pd-paid{display:inline-block;margin-top:2.5mm;padding:1mm 4mm;border:.5mm solid #2e7d32;border-radius:1.5mm;color:#2e7d32;font:800 8.5pt Arial,sans-serif;letter-spacing:.12em}
+.pd-bar{height:1.2mm;margin:4.5mm 0 5mm;background:linear-gradient(90deg,#ffd000 0,#ffd000 30%,#111 30%,#111 100%)}
+.pd-parties{display:grid;grid-template-columns:1fr 1fr;gap:6mm;margin-bottom:4mm}
+.pd-box{padding:4mm 5mm;background:#f6f5f1;border-radius:2mm;min-height:22mm}
+.pd-label{font:700 7pt Arial,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#9a7b00;margin-bottom:2mm}
+.pd-box b{display:block;font-size:10.5pt;color:#111;margin-bottom:.8mm}.pd-box span{display:block;color:#444;font-size:9pt}
+.pd-subject{display:flex;gap:5mm;align-items:baseline;padding:3mm 0;border-top:.3mm solid #ddd;border-bottom:.3mm solid #ddd;margin-bottom:4.5mm}
+.pd-subject small{font:700 7pt Arial,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#9a7b00}.pd-subject b{font-size:10.5pt;color:#111}
+.pd-table{width:100%;border-collapse:collapse;margin-bottom:5mm}
+.pd-table th{padding:2.6mm 3mm;background:#111;color:#fff;font:700 7.5pt Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;text-align:left}
+.pd-table td{padding:2.2mm 3mm;border-bottom:.3mm solid #e2e0d8;vertical-align:top}
+.pd-table tbody tr:nth-child(even) td{background:#fafaf7}
+.pd-table .n{text-align:right;white-space:nowrap}.pd-table tr{break-inside:avoid}
+.pd-tot{margin-left:auto;width:72mm;break-inside:avoid}
+.pd-tot div{display:flex;justify-content:space-between;padding:1.6mm 3mm;font-size:9.5pt}.pd-tot div span{color:#555}
+.pd-tot .pd-grand{margin-top:1.5mm;padding:3mm;background:#ffd000;color:#111;border-radius:1.5mm;font:800 11.5pt Arial,sans-serif}.pd-tot .pd-grand span{color:#111}
+.pd-vatnote{margin-top:3mm;text-align:right;font-size:8pt;color:#666}
+.pd-sec{margin-top:4mm;padding:3mm 5mm;border-left:1mm solid #ffd000;background:#f6f5f1;break-inside:avoid}
+.pd-sec p{margin:0;white-space:pre-line;color:#333;font-size:9pt}
+.pd-grid{display:grid;grid-template-columns:1fr 1fr;gap:3.5mm 6mm}
+.pd-grid .wide{grid-column:1/-1}.pd-grid small{display:block;font-size:7.5pt;color:#777}.pd-grid b{display:block;font-size:9.5pt;color:#111;white-space:pre-line}
+.pd-sign{display:grid;grid-template-columns:1fr 1fr;gap:6mm;margin-top:5mm;break-inside:avoid}
+.pd-sign div{height:24mm;padding:3mm 4mm;border:.3mm solid #bbb;border-radius:2mm}.pd-sign b{display:block;font-size:9pt}.pd-sign small{color:#777;font-size:7.5pt}
+.pd-foot{position:fixed;left:0;right:0;bottom:0;padding-top:3mm;border-top:.3mm solid #ccc;text-align:center;font-size:7.5pt;color:#777;line-height:1.5}
+.pd-foot b{color:#111}
+.pd-main{padding-bottom:16mm}
