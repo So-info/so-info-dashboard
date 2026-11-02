@@ -2,159 +2,195 @@
 const SUPABASE_URL='https://vmenybnuyiwtxazstydk.supabase.co';
 const SUPABASE_KEY='sb_publishable_c2fj1vnsKwhxVY2IHI0RuA_J_jefH6G';
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const $=id=>document.getElementById(id);let customers=[],selectedCard=null,busy=false;
-function msg(t){$('appMessage').textContent=t}function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-async function admin(){const {data:{user},error}=await db.auth.getUser();if(error||!user)return null;const {data,error:e}=await db.from('admin_users').select('user_id').eq('user_id',user.id).maybeSingle();if(e)throw e;if(!data){await db.auth.signOut();throw Error('Ce compte ne figure pas dans les administrateurs autorisés.')}return user}
-function show(logged){$('login').hidden=logged;$('dashboard').hidden=!logged;$('logout').hidden=!logged}
-async function load(){
-  // Charger les clients et les cartes séparément : cela évite les problèmes
-  // de relation imbriquée Supabase et garantit le même résultat dans
-  // la fiche client et dans l'onglet Fidélité.
-  const [{data:clientRows,error:clientsError},{data:cardRows,error:cardsError}] = await Promise.all([
-    db.from('customers')
-      .select('id,first_name,last_name,phone,email,company,address,postcode,city,notes')
-      .order('last_name'),
-    db.from('loyalty_cards')
-      .select('id,customer_id,points,reward_unlocked')
-  ]);
-  if(clientsError) throw clientsError;
-  if(cardsError) throw cardsError;
-
-  const cardsByCustomer = new Map();
-  (cardRows||[]).forEach(card=>{
-    const list=cardsByCustomer.get(card.customer_id)||[];
-    list.push(card);
-    cardsByCustomer.set(card.customer_id,list);
-  });
-  customers=(clientRows||[]).map(client=>({
-    ...client,
-    loyalty_cards:cardsByCustomer.get(client.id)||[]
-  }));
-
-  renderClients();
-  fillLoyalty();
-  fillDocumentCustomers();
-}
-function cardOf(c){return Array.isArray(c?.loyalty_cards)?c.loyalty_cards[0]:c?.loyalty_cards}
-function renderClients(){const q=$('clientSearch').value.toLocaleLowerCase('fr').trim();const rows=customers.filter(c=>`${c.first_name} ${c.last_name} ${c.phone||''} ${c.email||''} ${c.company||''}`.toLocaleLowerCase('fr').includes(q));$('clientList').innerHTML=rows.map(c=>`<div class="client-row"><div><strong>${esc(c.first_name)} ${esc(c.last_name)}</strong><small>${esc(c.phone||c.email||c.company||'Coordonnées non renseignées')}</small></div><button data-edit="${c.id}">Ouvrir</button></div>`).join('')||'<p class="muted">Aucun client trouvé.</p>';document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editClient(b.dataset.edit))}
-function fillLoyalty(){const sel=$('loyaltyClient'),old=sel.value;sel.innerHTML='<option value="">Sélectionner un client</option>'+customers.filter(c=>cardOf(c)).map(c=>`<option value="${c.id}">${esc(c.first_name)} ${esc(c.last_name)}</option>`).join('');if(customers.some(c=>c.id===old&&cardOf(c)))sel.value=old}
-function fillDocumentCustomers(){const sel=$('docCustomer'),old=sel.value;sel.innerHTML='<option value="">Sélectionner un client</option>'+customers.map(c=>`<option value="${c.id}">${esc(c.first_name)} ${esc(c.last_name)}</option>`).join('');if(customers.some(c=>c.id===old))sel.value=old}
-function editClient(id){const c=customers.find(x=>x.id===id);$('clientEditor').hidden=false;$('editorTitle').textContent=c?'Modifier la fiche client':'Nouveau client';$('clientId').value=c?.id||'';for(const k of ['firstName','lastName','company','phone','clientEmail','address','postcode','city','notes'])$(k).value=c?.[{firstName:'first_name',lastName:'last_name',clientEmail:'email'}[k]||k]||'';renderClientLoyalty(c);$('clientEditor').scrollIntoView({behavior:'smooth',block:'start'})}
-function renderClientLoyalty(c){const box=$('clientLoyaltyBlock');if(!c){box.hidden=true;return}const card=cardOf(c);if(!card){box.hidden=false;box.innerHTML='<div class="client-loyalty-empty"><strong>Carte de fidélité indisponible</strong><p class="muted small">Aucune carte n’est associée à ce client.</p></div>';return}box.hidden=false;const n=Math.max(0,Math.min(10,Number(card.points)||0));$('clientLoyaltyPoints').textContent=n;$('clientLoyaltyStatus').textContent=n>=10?'Récompense disponible !':`Encore ${10-n} passage${10-n>1?'s':''} avant le cadeau`;$('clientStampGrid').innerHTML=Array.from({length:10},(_,i)=>`<span class="client-stamp ${i<n?'is-done':''}">${i<n?'★':'·'}</span>`).join('');$('clientRewardNotice').hidden=n<10;$('clientAddStamp').disabled=n>=10;$('clientRedeem').disabled=n!==10;$('clientAddStamp').onclick=()=>clientStampAction(c.id,'stamp');$('clientRedeem').onclick=()=>clientStampAction(c.id,'redeem');$('clientOpenLoyalty').onclick=()=>{switchView('loyalty');$('loyaltyClient').value=c.id;drawLoyalty(c.id);$('loyaltyClient').scrollIntoView({behavior:'smooth',block:'center'})}}
-async function clientStampAction(customerId,action){const c=customers.find(x=>x.id===customerId),card=cardOf(c);if(!card)return;if(action==='redeem'&&!confirm('Confirmer la remise du cadeau et remettre la carte à zéro ?'))return;const button=action==='stamp'?'clientAddStamp':'clientRedeem';$(button).disabled=true;try{const {error}=await db.rpc(action==='stamp'?'add_stamp':'redeem_reward',{p_card_id:card.id});if(error)throw error;await load();editClient(customerId);msg(action==='stamp'?'Tampon ajouté à la carte du client.':'Cadeau remis. Carte remise à zéro.')}catch(e){$(button).disabled=false;msg('Erreur fidélité : '+e.message)}}
-function clearEditor(){$('clientForm').reset();$('clientId').value='';$('clientEditor').hidden=true}
-$('loginForm').onsubmit=async e=>{e.preventDefault();if(busy)return;busy=true;$('loginMessage').textContent='Connexion…';try{const {error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;const u=await admin();if(!u)throw Error('Connexion requise.');$('adminEmail').textContent=u.email||'';$('password').value='';show(true);await load();await loadDocuments();await loadSettings();msg('Connecté.')}catch(e){$('loginMessage').textContent=e.message||String(e)}finally{busy=false}};
-$('logout').onclick=async()=>{await db.auth.signOut();show(false);msg('Déconnecté.')};
-function switchView(name){document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!==`view-${name}`);document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.view===name));if(name==='documents')loadDocuments();if(name==='settings')loadSettings()}
-document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>switchView(b.dataset.view));document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>switchView(b.dataset.go));$('clientSearch').oninput=renderClients;$('newClientBtn').onclick=()=>editClient(null);$('cancelClient').onclick=clearEditor;
-$('clientForm').onsubmit=async e=>{e.preventDefault();const id=$('clientId').value;const row={first_name:$('firstName').value.trim(),last_name:$('lastName').value.trim(),phone:$('phone').value.trim()||null,email:$('clientEmail').value.trim()||null,company:$('company').value.trim()||null,address:$('address').value.trim()||null,postcode:$('postcode').value.trim()||null,city:$('city').value.trim()||null,notes:$('notes').value.trim()||null};try{let result;if(id){result=await db.from('customers').update(row).eq('id',id).select('id').single()}else{result=await db.from('customers').insert(row).select('id').single()}if(result.error)throw result.error;const customerId=result.data.id;const card=customers.find(c=>c.id===customerId);if(!card||!cardOf(card)){const {error}=await db.from('loyalty_cards').insert({customer_id:customerId});if(error&&!/duplicate|unique/i.test(error.message))throw error}clearEditor();await load();msg(id?'Fiche client mise à jour.':'Client et carte fidélité créés.')}catch(e){msg('Erreur : '+e.message)}};
-$('loyaltyClient').onchange=()=>drawLoyalty($('loyaltyClient').value);
-function drawLoyalty(id){const c=customers.find(x=>x.id===id),card=cardOf(c);selectedCard=card||null;$('loyaltyPanel').hidden=!card;if(!card)return;const n=Number(card.points)||0;$('loyaltyName').textContent=`${c.first_name} ${c.last_name}`;$('points').textContent=n;$('loyaltyStatus').textContent=n>=10?'Récompense disponible !':`Encore ${10-n} passage(s) !`;$('stampGrid').innerHTML=Array.from({length:10},(_,i)=>`<div class="stamp ${i<n?'done':''}">${i<n?'★':'☆'}</div>`).join('');$('rewardNotice').hidden=n<10;$('addStamp').disabled=n>=10;$('redeem').disabled=n!==10;loadHistory(card.id)}
-async function loadHistory(cardId){$('stampHistory').innerHTML='<li>Chargement…</li>';const {data,error}=await db.from('stamp_events').select('action,created_at').eq('card_id',cardId).order('created_at',{ascending:false}).limit(30);if(error){$('stampHistory').innerHTML=`<li>${esc(error.message)}</li>`;return}$('stampHistory').innerHTML=(data||[]).map(e=>`<li>${new Date(e.created_at).toLocaleString('fr-FR')} — ${e.action==='stamp'?'Tampon ajouté':'Cadeau remis, carte remise à zéro'}</li>`).join('')||'<li>Aucun événement.</li>'}
-$('addStamp').onclick=async()=>{if(!selectedCard)return;try{const {error}=await db.rpc('add_stamp',{p_card_id:selectedCard.id});if(error)throw error;const id=$('loyaltyClient').value;await load();$('loyaltyClient').value=id;drawLoyalty(id);msg('Tampon ajouté.')}catch(e){msg('Erreur : '+e.message)}};
-$('redeem').onclick=async()=>{if(!selectedCard||!confirm('Confirmer la remise du cadeau et remettre la carte à zéro ?'))return;try{const {error}=await db.rpc('redeem_reward',{p_card_id:selectedCard.id});if(error)throw error;const id=$('loyaltyClient').value;await load();$('loyaltyClient').value=id;drawLoyalty(id);msg('Cadeau remis. Carte remise à zéro.')}catch(e){msg('Erreur : '+e.message)}};
-async function loadDocuments(){
-  const box=$('documentsList');
-  if(!box) return;
-  box.innerHTML='<p class="muted">Chargement des documents…</p>';
-  try {
-    const request=db.from('management_documents')
-      .select('id,type,number,document_date,customer_id,subject,status,created_at')
-      .order('created_at',{ascending:false});
-    const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('La requête Supabase met trop de temps à répondre.')),15000));
-    const {data,error}=await Promise.race([request,timeout]);
-    if(error) throw error;
-    const rows=data||[];
-    box.innerHTML=rows.map(d=>{
-      const c=customers.find(x=>x.id===d.customer_id);
-      const typ={quote:'Devis',invoice:'Facture',intake:'Prise en charge'}[d.type]||d.type;
-      return `<div class="client-row"><div><strong>${esc(d.number)} · ${typ}</strong><small>${esc(c?c.first_name+' '+c.last_name:'Client non associé')} · ${esc(d.subject||'Sans objet')} · ${esc(d.status||'')}</small></div><div class="actions"><span class="muted small">${esc(d.document_date||'')}</span><button type="button" data-open-document="${esc(d.id)}">Ouvrir</button></div></div>`;
-    }).join('')||'<p class="muted">Aucun document enregistré.</p>';
-    box.querySelectorAll('[data-open-document]').forEach(b=>b.onclick=()=>openDocument(b.dataset.openDocument));
-  } catch(error) {
-    console.error('Chargement des documents Supabase :',error);
-    box.innerHTML=`<p class="muted">Impossible de charger les documents : ${esc(error.message||String(error))}</p><p class="muted small">Aucune donnée n’a été modifiée. Réessaie avec « Actualiser ».</p>`;
-  }
-}
-$('refreshDocuments').onclick=loadDocuments;
-$('createDocument').onclick=async()=>{const type=$('docType').value,customer_id=$('docCustomer').value||null;if(!customer_id){msg('Sélectionne un client avant de créer le document.');return}try{const {data:number,error:nerr}=await db.rpc('next_management_document_number',{p_type:type});if(nerr)throw nerr;const row={id:crypto.randomUUID(),type,number,customer_id,document_date:$('docDate').value||new Date().toISOString().slice(0,10),subject:$('docSubject').value.trim(),status:$('docStatus').value,validity:30,due_date:'',payload:{items:[],discount:0,notes:''},issued:false};const {error}=await db.from('management_documents').insert(row);if(error)throw error;$('docSubject').value='';await loadDocuments();msg(`Document ${number} créé.`);await openDocument(row.id)}catch(e){msg('Création impossible : '+e.message)}};
-async function loadSettings(){const {data,error}=await db.from('management_settings').select('settings').eq('id',1).maybeSingle();if(error){msg('Réglages : '+error.message);return}const s=data?.settings||{};$('settingBusinessName').value=s.businessName||'So Info';$('settingEmail').value=s.email||'';$('settingLegalStatus').value=s.legalStatus||'Micro-entreprise';$('settingVatMode').value=s.vatMode||'exempt';$('settingPaymentTerms').value=s.paymentTerms||''}
-$('settingsForm').onsubmit=async e=>{e.preventDefault();const settings={businessName:$('settingBusinessName').value.trim(),email:$('settingEmail').value.trim(),legalStatus:$('settingLegalStatus').value.trim(),vatMode:$('settingVatMode').value,paymentTerms:$('settingPaymentTerms').value.trim()};const {error}=await db.from('management_settings').upsert({id:1,settings,updated_at:new Date().toISOString()});if(error)msg('Enregistrement impossible : '+error.message);else msg('Réglages enregistrés dans Supabase.')};
-$('docDate').value=new Date().toISOString().slice(0,10);
-(async()=>{try{const u=await admin();if(u){$('adminEmail').textContent=u.email||'';show(true);await load();await loadDocuments();await loadSettings()}}catch(e){msg(e.message)}})();
-
-
-// V1.3 — édition détaillée, sauvegarde et impression des documents.
-let activeDocument=null, activePayload={};
+const $=id=>document.getElementById(id);
+const esc=(s='')=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(n)||0);
-function itemRow(item={description:'',qty:1,price:0,vat:0}){
-  const tr=document.createElement('tr');
-  tr.innerHTML=`<td><input aria-label="Désignation" class="item-description" maxlength="240" value="${esc(item.description||'')}"></td><td><input aria-label="Quantité" class="item-qty" type="number" min="0" step="0.01" value="${Number(item.qty??1)}"></td><td><input aria-label="Prix unitaire" class="item-price" type="number" min="0" step="0.01" value="${Number(item.price??0)}"></td><td><input aria-label="TVA" class="item-vat" type="number" min="0" max="100" step="0.1" value="${Number(item.vat??0)}"></td><td><button type="button" class="remove-item" aria-label="Supprimer la ligne">×</button></td>`;
-  tr.querySelectorAll('input').forEach(i=>i.addEventListener('input',calculateDocumentTotals));
-  tr.querySelector('.remove-item').onclick=()=>{tr.remove();calculateDocumentTotals()};
-  return tr;
+const TYPE={quote:'Devis',invoice:'Facture',intake:'Prise en charge'},ICON={quote:'📄',invoice:'🧾',intake:'🖥️'};
+const SC={'En cours':'s-cours','En attente':'s-attente','Terminé':'s-termine','Payé':'s-paye','Annulé':'s-annule'};
+let customers=[],docs=[],activeDocument=null,activePayload={},docFilter='all',ndType='quote',ready=false,busy=false,tt;
+const empty=m=>`<div class="empty">${ready?m:'Chargement…'}</div>`;
+const cardOf=c=>c?.loyalty_cards?.[0];
+const fullName=c=>c?`${c.first_name||''} ${c.last_name||''}`.trim():'Client non associé';
+const initials=c=>((c.first_name||'?')[0]+(c.last_name||'')[0]).toUpperCase();
+const norm=s=>String(s||'').toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+function toast(t,bad){const e=$('toast');e.textContent=t;e.className='toast show'+(bad?' bad':'');clearTimeout(tt);tt=setTimeout(()=>e.className='toast',3200)}
+function totals(p){const it=Array.isArray(p?.items)?p.items:[];const ht0=it.reduce((s,i)=>s+(+i.qty||0)*(+i.price||0),0),disc=Math.min(ht0,Math.max(0,+p?.discount||0)),r=ht0?disc/ht0:0;const vat=it.reduce((s,i)=>s+(+i.qty||0)*(+i.price||0)*(1-r)*(+i.vat||0)/100,0);return{ht:ht0-disc,vat,ttc:ht0-disc+vat}}
+const sum=a=>a.reduce((s,d)=>s+totals(d.payload).ttc,0);
+
+/* ---------- Auth ---------- */
+async function admin(){const {data:{user},error}=await db.auth.getUser();if(error||!user)return null;const {data,error:e}=await db.from('admin_users').select('user_id').eq('user_id',user.id).maybeSingle();if(e)throw e;if(!data){await db.auth.signOut();throw Error('Ce compte ne figure pas dans les administrateurs autorisés.')}return user}
+function show(on){$('login').hidden=on;$('dashboard').hidden=!on;$('nav').hidden=!on;$('logout').hidden=!on}
+async function init(u){$('adminEmail').textContent=u.email||'';show(true);const v=location.hash.slice(1);switchView(['clients','loyalty','docs','settings'].includes(v)?v:'home');renderAll();try{await Promise.all([load(),loadDocs(),loadSettings()])}catch(e){toast(e.message||String(e),1)}ready=true;renderAll()}
+$('loginForm').onsubmit=async e=>{e.preventDefault();if(busy)return;busy=true;$('loginMessage').textContent='Connexion…';try{const {error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;const u=await admin();if(!u)throw Error('Connexion requise.');$('password').value='';$('loginMessage').textContent='';await init(u)}catch(e){$('loginMessage').textContent=e.message||String(e)}finally{busy=false}};
+const logout=async()=>{await db.auth.signOut();ready=false;show(false);toast('Déconnecté.')};$('logout').onclick=logout;$('logout2').onclick=logout;
+
+/* ---------- Données ---------- */
+async function load(){
+ const [a,b]=await Promise.all([db.from('customers').select('id,first_name,last_name,phone,email,company,address,postcode,city,notes').order('last_name'),db.from('loyalty_cards').select('id,customer_id,points,reward_unlocked')]);
+ if(a.error)throw a.error;if(b.error)throw b.error;
+ const m=new Map();(b.data||[]).forEach(c=>{if(!m.has(c.customer_id))m.set(c.customer_id,[]);m.get(c.customer_id).push(c)});
+ customers=(a.data||[]).map(c=>({...c,loyalty_cards:m.get(c.id)||[]}));
 }
-function getDocumentItems(){
-  return [...$('documentItems').querySelectorAll('tr')].map(tr=>({
-    description:tr.querySelector('.item-description').value.trim(),
-    qty:Math.max(0,Number(tr.querySelector('.item-qty').value)||0),
-    price:Math.max(0,Number(tr.querySelector('.item-price').value)||0),
-    vat:Math.max(0,Math.min(100,Number(tr.querySelector('.item-vat').value)||0))
-  }));
+async function loadDocs(){const {data,error}=await db.from('management_documents').select('id,type,number,document_date,due_date,customer_id,subject,status,created_at,payload').order('created_at',{ascending:false});if(error)throw error;docs=data||[]}
+async function syncCards(){const {data,error}=await db.from('loyalty_cards').select('id,customer_id,points,reward_unlocked');if(error)return;const m=new Map(data.map(c=>[c.customer_id,[c]]));customers.forEach(c=>c.loyalty_cards=m.get(c.id)||[]);renderAll()}
+
+/* ---------- Affichage ---------- */
+function docRow(d){const c=customers.find(x=>x.id===d.customer_id),t=totals(d.payload).ttc;return `<button class="row" data-doc="${esc(d.id)}"><span class="dot">${ICON[d.type]||'📄'}</span><span class="grow"><b>${esc(d.number)} · ${TYPE[d.type]||esc(d.type)}</b><small>${esc(fullName(c))} · ${esc(d.subject||'Sans objet')}</small></span><span class="end"><em class="badge ${SC[d.status]||''}">${esc(d.status||'')}</em>${t?`<small>${money(t)}</small>`:''}</span></button>`}
+function renderHome(){
+ $('today').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+ const gifts=customers.filter(c=>(cardOf(c)?.points||0)>=10),inv=docs.filter(d=>d.type==='invoice'),mo=new Date().toISOString().slice(0,7);
+ $('stClients').textContent=ready?customers.length:'–';$('stGifts').textContent=ready?gifts.length:'–';
+ $('stDue').textContent=ready?money(sum(inv.filter(d=>!['Payé','Annulé'].includes(d.status)))):'–';
+ $('stMonth').textContent=ready?money(sum(inv.filter(d=>d.status==='Payé'&&(d.document_date||'').startsWith(mo)))):'–';
+ $('homeGifts').innerHTML=gifts.length?`<div class="gift-banner"><h3>🎁 Cadeaux à remettre</h3>${gifts.map(c=>`<div class="row"><span class="av">${initials(c)}</span><span class="grow"><b>${esc(fullName(c))}</b><small>10 / 10 passages</small></span><button class="stampbtn gift" data-redeem="${cardOf(c).id}">Remettre</button></div>`).join('')}</div>`:'';
+ $('homeDocs').innerHTML=docs.slice(0,5).map(docRow).join('')||empty('Aucun document pour le moment.');
 }
-function calculateDocumentTotals(){
-  const items=getDocumentItems();
-  const discount=Math.max(0,Number($('editDocDiscount').value)||0);
-  const ht0=items.reduce((s,i)=>s+i.qty*i.price,0);
-  const discountRatio=ht0>0?Math.min(1,discount/ht0):0;
-  const ht=Math.max(0,ht0-discount);
-  const vat=items.reduce((s,i)=>s+(i.qty*i.price*(1-discountRatio)*i.vat/100),0);
-  $('docTotalHT').textContent=money(ht);
-  $('docTotalVAT').textContent=money(vat);
-  $('docTotalTTC').textContent=money(ht+vat);
+function renderClients(){
+ const q=norm($('clientSearch').value.trim());
+ const rows=customers.filter(c=>norm(`${c.first_name||''} ${c.last_name||''} ${c.phone||''} ${c.email||''} ${c.company||''}`).includes(q));
+ $('clientList').innerHTML=rows.map(c=>{const card=cardOf(c),n=card?.points||0;return `<div class="row" data-client="${c.id}" role="button" tabindex="0"><span class="av">${esc(initials(c))}</span><span class="grow"><b>${esc(fullName(c))}</b><small>${esc(c.company||c.phone||c.email||'Coordonnées non renseignées')}</small></span>${card?`<span class="pill ${n>=10?'gift':''}">${n>=10?'🎁 Cadeau':n+'/10'}</span>`:''}${c.phone?`<a class="call" data-stop href="tel:${esc(c.phone)}" aria-label="Appeler ${esc(fullName(c))}"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></a>`:''}</div>`}).join('')||empty('Aucun client trouvé.');
 }
-$('editDocDiscount').addEventListener('input',calculateDocumentTotals);
-$('addDocumentItem').onclick=()=>{$('documentItems').appendChild(itemRow());calculateDocumentTotals()};
-function setVal(id,v){$(id).value=v??''}
-async function openDocument(id){
-  try{
-    const {data,error}=await db.from('management_documents').select('*').eq('id',id).single();
-    if(error)throw error;
-    activeDocument=data;activePayload=data.payload&&typeof data.payload==='object'?data.payload:{};
-    const client=customers.find(c=>c.id===data.customer_id);
-    const typeLabel={quote:'Devis',invoice:'Facture',intake:'Prise en charge'}[data.type]||data.type;
-    $('editorDocTitle').textContent=`${data.number} · ${typeLabel}${client?' — '+client.first_name+' '+client.last_name:''}`;
-    setVal('editDocSubject',data.subject);setVal('editDocDate',data.document_date);setVal('editDocStatus',data.status||'En cours');
-    setVal('editDocValidity',data.validity??30);setVal('editDocDueDate',data.due_date||'');
-    setVal('editDocDiscount',activePayload.discount??0);setVal('editDocNotes',activePayload.notes||'');
-    $('documentItems').innerHTML='';
-    const items=Array.isArray(activePayload.items)?activePayload.items:[];
-    (items.length?items:[{description:'',qty:1,price:0,vat:0}]).forEach(i=>$('documentItems').appendChild(itemRow(i)));
-    $('intakeFields').hidden=data.type!=='intake';
-    setVal('intakeMaterial',activePayload.materialType||'');setVal('intakeModel',activePayload.model||'');
-    setVal('intakeSerial',activePayload.serial||'');setVal('intakeAccessories',activePayload.accessories||'');
-    setVal('intakeFault',activePayload.fault||'');setVal('intakeCondition',activePayload.condition||'');
-    setVal('intakeTerms',activePayload.terms||'Matériel confié pour diagnostic. Sauvegarde des données à la charge du client sauf accord écrit contraire.');
-    calculateDocumentTotals();
-    $('documentEditor').hidden=false;$('documentEditor').scrollIntoView({behavior:'smooth',block:'start'});
-  }catch(e){msg('Ouverture impossible : '+e.message)}
+function renderLoyalty(){
+ const q=norm($('loyaltySearch').value.trim());
+ const rows=customers.filter(c=>cardOf(c)&&norm(fullName(c)+' '+(c.phone||'')).includes(q)).sort((a,b)=>((cardOf(b).points>=10)-(cardOf(a).points>=10)));
+ $('loyaltyList').innerHTML=rows.map(c=>{const card=cardOf(c),n=Math.min(10,card.points||0);return `<div class="row"><span class="av">${esc(initials(c))}</span><span class="grow" data-client="${c.id}"><b>${esc(fullName(c))}</b><small>${n>=10?'Cadeau disponible':`${n} / 10 · encore ${10-n}`}</small><div class="prog"><i style="width:${n*10}%"></i></div></span><button class="stampbtn ${n>=10?'gift':''}" ${n>=10?`data-redeem="${card.id}">🎁 Remettre`:`data-stamp="${card.id}">＋1`}</button></div>`}).join('')||empty('Aucun client avec carte.');
 }
-$('closeDocumentEditor').onclick=()=>{$('documentEditor').hidden=true;activeDocument=null};
-$('saveDocument').onclick=async()=>{
-  if(!activeDocument)return;
-  const items=getDocumentItems();
-  const payload={...activePayload,items,discount:Math.max(0,Number($('editDocDiscount').value)||0),notes:$('editDocNotes').value.trim()};
-  if(activeDocument.type==='intake'){
-    Object.assign(payload,{materialType:$('intakeMaterial').value.trim(),model:$('intakeModel').value.trim(),serial:$('intakeSerial').value.trim(),accessories:$('intakeAccessories').value.trim(),fault:$('intakeFault').value.trim(),condition:$('intakeCondition').value.trim(),terms:$('intakeTerms').value.trim()});
-  }
-  const patch={subject:$('editDocSubject').value.trim(),document_date:$('editDocDate').value||null,status:$('editDocStatus').value,validity:Math.max(0,Number($('editDocValidity').value)||0),due_date:$('editDocDueDate').value||null,payload,updated_at:new Date().toISOString()};
-  try{
-    const {error}=await db.from('management_documents').update(patch).eq('id',activeDocument.id);
-    if(error)throw error;
-    activeDocument={...activeDocument,...patch};activePayload=payload;
-    await loadDocuments();msg(`Document ${activeDocument.number} enregistré dans Supabase.`);
-  }catch(e){msg('Enregistrement impossible : '+e.message)}
+function renderDocs(){
+ const q=norm($('docSearch').value.trim());
+ const rows=docs.filter(d=>(docFilter==='all'||d.type===docFilter)&&norm(`${d.number||''} ${d.subject||''} ${d.status||''} ${fullName(customers.find(c=>c.id===d.customer_id))}`).includes(q));
+ $('docList').innerHTML=rows.map(docRow).join('')||empty('Aucun document.');
+}
+function renderAll(){renderHome();renderClients();renderLoyalty();renderDocs();refreshClientDlg()}
+function setFilter(f){docFilter=f;document.querySelectorAll('#docChips .chip').forEach(b=>b.classList.toggle('on',b.dataset.f===f));renderDocs()}
+function switchView(n){document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!=='v-'+n);document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.view===n));history.replaceState(null,'','#'+n);window.scrollTo({top:0})}
+['clientSearch','loyaltySearch','docSearch'].forEach(id=>$(id).addEventListener('input',()=>{renderClients();renderLoyalty();renderDocs()}));
+
+/* ---------- Fidélité ---------- */
+async function stamp(cardId){
+ const c=customers.find(x=>cardOf(x)?.id===cardId),card=cardOf(c);if(!card||(card.points||0)>=10)return;
+ card.points=(card.points||0)+1;renderAll();
+ try{const {error}=await db.rpc('add_stamp',{p_card_id:cardId});if(error)throw error;toast(`＋1 · ${fullName(c)} (${card.points}/10)`);syncCards()}
+ catch(e){toast('Erreur fidélité : '+e.message,1);syncCards()}
+}
+async function redeem(cardId){
+ const c=customers.find(x=>cardOf(x)?.id===cardId);if(!confirm(`Confirmer la remise du cadeau à ${fullName(c)} et remettre la carte à zéro ?`))return;
+ try{const {error}=await db.rpc('redeem_reward',{p_card_id:cardId});if(error)throw error;toast('Cadeau remis. Carte remise à zéro.');await syncCards()}catch(e){toast('Erreur fidélité : '+e.message,1)}
+}
+async function loadHistory(cardId){const ul=$('stampHistory');ul.innerHTML='<li>Chargement…</li>';const {data,error}=await db.from('stamp_events').select('action,created_at').eq('card_id',cardId).order('created_at',{ascending:false}).limit(15);ul.innerHTML=error?`<li>${esc(error.message)}</li>`:(data||[]).map(e=>`<li>${new Date(e.created_at).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})} — ${e.action==='stamp'?'Tampon ajouté':'Cadeau remis'}</li>`).join('')||'<li>Aucun événement.</li>'}
+$('histBox').ontoggle=()=>{const card=cardOf(customers.find(x=>x.id===$('clientId').value));if($('histBox').open&&card)loadHistory(card.id)};
+
+/* ---------- Fiche client ---------- */
+function renderClientLoyalty(){
+ const c=customers.find(x=>x.id===$('clientId').value),card=cardOf(c),box=$('clientLoyalty');
+ if(!card){box.hidden=true;return}
+ const n=Math.min(10,card.points||0);box.hidden=false;
+ box.innerHTML=`<div class="loy-top"><span class="muted small">Carte de fidélité</span><strong>${n}<small class="muted"> / 10</small></strong></div><div class="stamps">${Array.from({length:10},(_,i)=>`<span class="stamp ${i<n?'on':''}">${i<n?'★':''}</span>`).join('')}</div><div class="row2">${n>=10?`<button class="btn primary" data-redeem="${card.id}">🎁 Remettre le cadeau</button>`:`<button class="btn primary" data-stamp="${card.id}">＋ Ajouter un tampon</button>`}</div>`;
+}
+function refreshClientDlg(){if($('clientDlg').open&&$('clientId').value)renderClientLoyalty()}
+function openClient(id){
+ const c=customers.find(x=>x.id===id),map={firstName:'first_name',lastName:'last_name',clientEmail:'email'};
+ $('clientTitle').textContent=c?fullName(c):'Nouveau client';$('clientId').value=c?.id||'';
+ ['firstName','lastName','company','phone','clientEmail','address','postcode','city','notes'].forEach(k=>$(k).value=c?.[map[k]||k]||'');
+ renderClientLoyalty();$('clientDocsBox').hidden=!c;
+ if(c)$('clientDocs').innerHTML=docs.filter(d=>d.customer_id===c.id).map(docRow).join('')||'<div class="empty">Aucun document.</div>';
+ $('histBox').hidden=!(c&&cardOf(c));$('histBox').open=false;
+ if(!$('clientDlg').open)$('clientDlg').showModal();
+}
+$('clientForm').onsubmit=async e=>{
+ e.preventDefault();const id=$('clientId').value,v=k=>$(k).value.trim()||null;
+ const row={first_name:$('firstName').value.trim(),last_name:$('lastName').value.trim(),phone:v('phone'),email:v('clientEmail'),company:v('company'),address:v('address'),postcode:v('postcode'),city:v('city'),notes:v('notes')};
+ try{
+  const r=id?await db.from('customers').update(row).eq('id',id).select('id').single():await db.from('customers').insert(row).select('id').single();
+  if(r.error)throw r.error;
+  const old=customers.find(c=>c.id===r.data.id);
+  if(!old||!cardOf(old)){const {error}=await db.from('loyalty_cards').insert({customer_id:r.data.id});if(error&&!/duplicate|unique/i.test(error.message))throw error}
+  await load();renderAll();$('clientDlg').close();toast(id?'Fiche client mise à jour.':'Client et carte fidélité créés.');
+ }catch(err){toast('Erreur : '+err.message,1)}
 };
+
+/* ---------- Nouveau document ---------- */
+function setSeg(){document.querySelectorAll('#ndSeg button').forEach(b=>b.classList.toggle('on',b.dataset.t===ndType))}
+document.querySelectorAll('#ndSeg button').forEach(b=>b.onclick=()=>{ndType=b.dataset.t;setSeg()});
+function openNewDoc(type,customerId){
+ ndType=type||'quote';setSeg();
+ $('ndCustomer').innerHTML='<option value="">Choisir un client…</option>'+customers.map(c=>`<option value="${c.id}">${esc(fullName(c))}</option>`).join('');
+ $('ndCustomer').value=customerId||'';$('ndSubject').value='';
+ if($('clientDlg').open)$('clientDlg').close();$('newDocDlg').showModal();
+}
+$('ndCreate').onclick=async()=>{
+ const customer_id=$('ndCustomer').value||null;if(!customer_id){toast('Choisis un client.',1);return}
+ $('ndCreate').disabled=true;
+ try{
+  const {data:number,error:ne}=await db.rpc('next_management_document_number',{p_type:ndType});if(ne)throw ne;
+  const row={id:crypto.randomUUID(),type:ndType,number,customer_id,document_date:new Date().toISOString().slice(0,10),subject:$('ndSubject').value.trim(),status:'En cours',validity:30,due_date:'',payload:{items:[],discount:0,notes:''},issued:false};
+  const {error}=await db.from('management_documents').insert(row);if(error)throw error;
+  $('newDocDlg').close();await loadDocs();renderAll();toast(`${number} créé.`);await openDocument(row.id);
+ }catch(e){toast('Création impossible : '+e.message,1)}finally{$('ndCreate').disabled=false}
+};
+
+/* ---------- Éditeur de document ---------- */
+function itemRow(i={description:'',qty:1,price:0,vat:0}){
+ const d=document.createElement('div');d.className='item';
+ d.innerHTML=`<label class="d">Désignation<input class="item-description" maxlength="240" value="${esc(i.description||'')}"></label><button type="button" class="rm" aria-label="Supprimer la ligne">×</button><label>Qté<input class="item-qty" type="number" min="0" step="0.01" inputmode="decimal" value="${+(i.qty??1)}"></label><label>Prix €<input class="item-price" type="number" min="0" step="0.01" inputmode="decimal" value="${+(i.price??0)}"></label><label>TVA %<input class="item-vat" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="${+(i.vat??0)}"></label>`;
+ d.querySelectorAll('input').forEach(x=>x.addEventListener('input',calc));d.querySelector('.rm').onclick=()=>{d.remove();calc()};return d;
+}
+function getItems(){return [...$('documentItems').children].map(r=>({description:r.querySelector('.item-description').value.trim(),qty:Math.max(0,+r.querySelector('.item-qty').value||0),price:Math.max(0,+r.querySelector('.item-price').value||0),vat:Math.max(0,Math.min(100,+r.querySelector('.item-vat').value||0))}))}
+function calc(){const t=totals({items:getItems(),discount:$('editDocDiscount').value});$('docTotalHT').textContent=money(t.ht);$('docTotalVAT').textContent=money(t.vat);$('docTotalTTC').textContent=money(t.ttc)}
+$('editDocDiscount').addEventListener('input',calc);
+$('addDocumentItem').onclick=()=>{const r=itemRow();$('documentItems').appendChild(r);calc();r.querySelector('input').focus()};
+const setVal=(id,v)=>{$(id).value=v??''};
+async function openDocument(id){
+ try{
+  const {data,error}=await db.from('management_documents').select('*').eq('id',id).single();if(error)throw error;
+  activeDocument=data;activePayload=data.payload&&typeof data.payload==='object'?data.payload:{};
+  const c=customers.find(x=>x.id===data.customer_id);
+  $('editorDocTitle').textContent=`${data.number} · ${TYPE[data.type]||data.type}${c?' — '+fullName(c):''}`;
+  setVal('editDocSubject',data.subject);setVal('editDocDate',data.document_date);setVal('editDocStatus',data.status||'En cours');setVal('editDocValidity',data.validity??30);setVal('editDocDueDate',data.due_date||'');setVal('editDocDiscount',activePayload.discount??0);setVal('editDocNotes',activePayload.notes||'');
+  $('documentItems').innerHTML='';const it=Array.isArray(activePayload.items)?activePayload.items:[];(it.length?it:[undefined]).forEach(i=>$('documentItems').appendChild(itemRow(i)));
+  $('intakeFields').hidden=data.type!=='intake';
+  setVal('intakeMaterial',activePayload.materialType||'');setVal('intakeModel',activePayload.model||'');setVal('intakeSerial',activePayload.serial||'');setVal('intakeAccessories',activePayload.accessories||'');setVal('intakeFault',activePayload.fault||'');setVal('intakeCondition',activePayload.condition||'');
+  setVal('intakeTerms',activePayload.terms||'Matériel confié pour diagnostic. Sauvegarde des données à la charge du client sauf accord écrit contraire.');
+  calc();if($('clientDlg').open)$('clientDlg').close();if(!$('docDlg').open)$('docDlg').showModal();$('docDlg').querySelector('.sheet').scrollTop=0;
+ }catch(e){toast('Ouverture impossible : '+e.message,1)}
+}
+$('closeDocumentEditor').onclick=()=>$('docDlg').close();
+$('docDlg').addEventListener('close',()=>{activeDocument=null});
+$('saveDocument').onclick=async()=>{
+ if(!activeDocument)return;
+ const payload={...activePayload,items:getItems(),discount:Math.max(0,+$('editDocDiscount').value||0),notes:$('editDocNotes').value.trim()};
+ if(activeDocument.type==='intake')Object.assign(payload,{materialType:$('intakeMaterial').value.trim(),model:$('intakeModel').value.trim(),serial:$('intakeSerial').value.trim(),accessories:$('intakeAccessories').value.trim(),fault:$('intakeFault').value.trim(),condition:$('intakeCondition').value.trim(),terms:$('intakeTerms').value.trim()});
+ const patch={subject:$('editDocSubject').value.trim(),document_date:$('editDocDate').value||null,status:$('editDocStatus').value,validity:Math.max(0,+$('editDocValidity').value||0),due_date:$('editDocDueDate').value||null,payload,updated_at:new Date().toISOString()};
+ $('saveDocument').disabled=true;
+ try{const {error}=await db.from('management_documents').update(patch).eq('id',activeDocument.id);if(error)throw error;activeDocument={...activeDocument,...patch};activePayload=payload;await loadDocs();renderAll();toast(`${activeDocument.number} enregistré.`)}
+ catch(e){toast('Enregistrement impossible : '+e.message,1)}finally{$('saveDocument').disabled=false}
+};
+
+/* ---------- Réglages ---------- */
+async function loadSettings(){const {data,error}=await db.from('management_settings').select('settings').eq('id',1).maybeSingle();if(error){toast('Réglages : '+error.message,1);return}const s=data?.settings||{};setVal('settingBusinessName',s.businessName||'So Info');setVal('settingEmail',s.email||'');setVal('settingLegalStatus',s.legalStatus||'Micro-entreprise');setVal('settingVatMode',s.vatMode||'exempt');setVal('settingPaymentTerms',s.paymentTerms||'')}
+$('settingsForm').onsubmit=async e=>{e.preventDefault();const settings={businessName:$('settingBusinessName').value.trim(),email:$('settingEmail').value.trim(),legalStatus:$('settingLegalStatus').value.trim(),vatMode:$('settingVatMode').value,paymentTerms:$('settingPaymentTerms').value.trim()};const {error}=await db.from('management_settings').upsert({id:1,settings,updated_at:new Date().toISOString()});error?toast('Enregistrement impossible : '+error.message,1):toast('Réglages enregistrés.')};
+
+/* ---------- Clics ---------- */
+document.addEventListener('click',e=>{
+ const t=e.target;if(t.closest('[data-stop]'))return;let el;
+ if(el=t.closest('[data-stamp]'))return stamp(el.dataset.stamp);
+ if(el=t.closest('[data-redeem]'))return redeem(el.dataset.redeem);
+ if(el=t.closest('[data-doc]'))return openDocument(el.dataset.doc);
+ if(el=t.closest('[data-client]'))return openClient(el.dataset.client);
+ if(el=t.closest('[data-newdoc]'))return openNewDoc(el.dataset.newdoc);
+ if(el=t.closest('[data-cdoc]'))return openNewDoc(el.dataset.cdoc,$('clientId').value);
+ if(el=t.closest('[data-act]')){if(el.dataset.act==='newClient')openClient(null);else{switchView('loyalty');$('loyaltySearch').focus()}return}
+ if(el=t.closest('[data-view]')){switchView(el.dataset.view);if(el.dataset.filter)setFilter(el.dataset.filter);return}
+ if(el=t.closest('[data-close]'))return el.closest('dialog').close();
+ if(el=t.closest('[data-f]'))setFilter(el.dataset.f);
+ if(t.closest('.brand')){e.preventDefault();switchView('home')}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('[data-client]'))e.target.click()});
+$('printDocument').onclick=()=>printDocument();
+
+/* ---------- Démarrage ---------- */
+(async()=>{try{const u=await admin();if(u)await init(u)}catch(e){toast(e.message,1)}})();
+
+/* ---------- Impression (code d'origine conservé) ---------- */
 function printDocument(){
   if(!activeDocument)return;
   const d=activeDocument,p=activePayload||{},c=customers.find(x=>x.id===d.customer_id)||{};
@@ -205,5 +241,3 @@ function printDocument(){
   };
   window.print();
 }
-$('printDocument').onclick=printDocument;
-

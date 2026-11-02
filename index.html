@@ -1,53 +1,124 @@
 <!doctype html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#090909"><meta name="description" content="Espace privé de gestion SO INFO"><title>SO INFO — Espace administration</title><link rel="stylesheet" href="style.css"></head>
-<body><main class="app-shell">
-<header class="top"><a class="brand" href="#home"><span class="logo">S</span><span>SO <b>INFO</b><small>ESPACE ADMINISTRATION</small></span></a><button id="logout" class="btn ghost" hidden>Déconnexion</button></header>
-<section id="login" class="login card"><p class="eyebrow">ESPACE PRIVÉ</p><h1>Bienvenue chez <em>SO INFO</em></h1><p class="muted">Connecte-toi pour accéder à ton tableau de bord.</p><form id="loginForm"><label>Adresse e-mail<input id="email" type="email" autocomplete="username" required></label><label>Mot de passe<input id="password" type="password" autocomplete="current-password" required></label><button class="btn primary full">Se connecter</button></form><p id="loginMessage" class="message" role="status"></p></section>
-<section id="dashboard" hidden>
-<div class="welcome"><div><p class="eyebrow">TABLEAU DE BORD</p><h1>Bonjour, <em>SO INFO.</em></h1><p class="muted">Tout ton activité au même endroit.</p></div><span class="secure">● Session sécurisée</span></div>
-<nav class="tabs" aria-label="Navigation principale"><button class="tab active" data-view="overview">Accueil</button><button class="tab" data-view="clients">Clients</button><button class="tab" data-view="loyalty">Fidélité</button><button class="tab" data-view="documents">Documents</button><button class="tab" data-view="settings">Réglages</button></nav>
-<section id="view-overview" class="view">
-<div class="home-intro"><p class="eyebrow">VOTRE ESPACE DE GESTION</p><h2>Tout est à sa place.</h2><p class="muted">Choisis un service pour commencer.</p></div>
-<div class="service-grid">
-<button class="service-card" data-go="clients"><span class="service-icon">♙</span><span class="service-copy"><strong>Clients</strong><small>Carnet clients</small></span><span class="service-arrow">→</span></button>
-<button class="service-card" data-go="loyalty"><span class="service-icon">★</span><span class="service-copy"><strong>Fidélité</strong><small>Cartes et récompenses</small></span><span class="service-arrow">→</span></button>
-<button class="service-card" data-go="documents"><span class="service-icon">▤</span><span class="service-copy"><strong>Devis & factures</strong><small>Créer et suivre</small></span><span class="service-arrow">→</span></button>
-<button class="service-card" data-go="settings"><span class="service-icon">⚙</span><span class="service-copy"><strong>Réglages</strong><small>Identité et paramètres</small></span><span class="service-arrow">→</span></button>
-</div>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0a0a09"><meta name="robots" content="noindex"><title>SO INFO · Gestion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="print.css"></head>
+<body>
+<div id="app" class="app">
+<header class="top"><a class="brand" href="#home"><span class="logo">S</span><span><b>SO INFO</b><small>Gestion</small></span></a><button id="logout" class="icon-btn" hidden aria-label="Déconnexion" title="Déconnexion"><svg viewBox="0 0 24 24"><path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/></svg></button></header>
+
+<section id="login" class="login card"><h1>Connexion</h1><p class="muted">Espace privé SO INFO.</p>
+<form id="loginForm"><label>E-mail<input id="email" type="email" autocomplete="username" required></label><label>Mot de passe<input id="password" type="password" autocomplete="current-password" required></label><button class="btn primary full">Se connecter</button></form><p id="loginMessage" class="msg" role="status"></p></section>
+
+<main id="dashboard" hidden>
+<section id="v-home" class="view">
+ <div class="hello"><h1>Bonjour 👋</h1><p class="muted" id="today"></p></div>
+ <div class="stats">
+  <div class="stat"><span>Clients</span><strong id="stClients">–</strong></div>
+  <button class="stat link" data-view="loyalty"><span>Cadeaux à remettre</span><strong id="stGifts">–</strong></button>
+  <button class="stat link" data-view="docs" data-filter="invoice"><span>À encaisser</span><strong id="stDue">–</strong></button>
+  <div class="stat"><span>Encaissé ce mois</span><strong id="stMonth">–</strong></div>
+ </div>
+ <div class="actions-grid">
+  <button class="act primary wide" data-act="quickStamp"><svg viewBox="0 0 24 24"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.2 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/></svg>Ajouter un passage fidélité</button>
+  <button class="act" data-act="newClient"><svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.5"/><path d="M3 20c0-3.6 3-6 7-6M18 8v6M15 11h6"/></svg>Nouveau client</button>
+  <button class="act" data-newdoc="intake"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Prise en charge</button>
+  <button class="act" data-newdoc="quote"><svg viewBox="0 0 24 24"><path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>Nouveau devis</button>
+  <button class="act" data-newdoc="invoice"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></svg>Nouvelle facture</button>
+ </div>
+ <div id="homeGifts"></div>
+ <div class="sec-head"><h2>Documents récents</h2><button class="link-btn" data-view="docs">Tout voir</button></div>
+ <div id="homeDocs" class="list"></div>
 </section>
-<section id="view-clients" class="view" hidden><div class="section-head"><div><p class="eyebrow">BASE COMMUNE</p><h2>Clients</h2></div><button id="newClientBtn" class="btn primary">＋ Nouveau client</button></div><div class="card"><input id="clientSearch" class="search" placeholder="Rechercher nom, téléphone, e-mail…" autocomplete="off"><div id="clientList" class="client-list"><p class="muted">Chargement…</p></div></div><div id="clientEditor" class="card client-editor" role="dialog" aria-modal="true" aria-labelledby="editorTitle" hidden><h3 id="editorTitle">Nouveau client</h3><form id="clientForm" class="form-grid"><input type="hidden" id="clientId"><label>Prénom<input id="firstName" required maxlength="100"></label><label>Nom<input id="lastName" required maxlength="100"></label><label>Société<input id="company" maxlength="160"></label><label>Téléphone<input id="phone" type="tel"></label><label>E-mail<input id="clientEmail" type="email"></label><label>Adresse<input id="address"></label><label>Code postal<input id="postcode" inputmode="numeric"></label><label>Ville<input id="city"></label><label class="wide">Notes<textarea id="notes" rows="3"></textarea></label><div class="wide actions"><button class="btn primary">Enregistrer</button><button type="button" id="cancelClient" class="btn ghost">Annuler</button></div></form><section id="clientLoyaltyBlock" class="client-loyalty" hidden aria-label="Carte de fidélité du client"><div class="client-loyalty-head"><div><p class="eyebrow">AVANTAGE CLIENT</p><h4>Carte de fidélité</h4></div><span class="loyalty-chip">SO INFO · FIDÉLITÉ</span></div><div class="client-loyalty-card"><div class="client-loyalty-top"><span>SO INFO</span><span>10 PASSAGES = 1 CADEAU</span></div><div class="client-loyalty-count"><strong id="clientLoyaltyPoints">0</strong><span>/ 10 passages</span></div><div id="clientStampGrid" class="client-stamp-grid"></div><p id="clientLoyaltyStatus" class="client-loyalty-status"></p></div><div id="clientRewardNotice" class="reward" hidden>🎁 Récompense disponible — cadeau à remettre</div><div class="actions client-loyalty-actions"><button type="button" id="clientAddStamp" class="btn primary">＋ Ajouter un tampon</button><button type="button" id="clientRedeem" class="btn ghost" disabled>Valider le cadeau</button><button type="button" id="clientOpenLoyalty" class="btn ghost">Voir l'historique complet</button></div><p class="muted small">La carte est liée à cette fiche client et synchronisée avec la rubrique Fidélité.</p></section></div></section>
-<section id="view-loyalty" class="view" hidden><div class="section-head"><div><p class="eyebrow">10 PASSAGES = 1 CADEAU</p><h2>Carte de fidélité</h2></div></div><div class="card"><label>Choisir un client<select id="loyaltyClient"><option value="">Sélectionner un client</option></select></label><div id="loyaltyPanel" hidden><h3 id="loyaltyName"></h3><div class="points"><strong id="points">0</strong><span>/ 10 tampons</span></div><p id="loyaltyStatus" class="muted">Encore 10 passages !</p><div id="stampGrid" class="stamp-grid"></div><div id="rewardNotice" class="reward" hidden>🎁 Récompense disponible !</div><div class="actions"><button id="addStamp" class="btn primary">＋ Ajouter un tampon</button><button id="redeem" class="btn ghost" disabled>Confirmer la remise du cadeau</button></div><h3>Historique</h3><ul id="stampHistory" class="history"></ul></div></div></section>
-<section id="view-documents" class="view" hidden><div class="section-head"><div><p class="eyebrow">GESTION COMMERCIALE</p><h2>Devis, factures & interventions</h2></div></div><div class="card"><div class="form-grid"><label>Type<select id="docType"><option value="quote">Devis</option><option value="invoice">Facture</option><option value="intake">Prise en charge</option></select></label><label>Client<select id="docCustomer"><option value="">Sélectionner un client</option></select></label><label class="wide">Objet / description<input id="docSubject" maxlength="240" placeholder="Ex. Diagnostic ordinateur portable"></label><label>Date<input id="docDate" type="date"></label><label>Statut<select id="docStatus"><option>En cours</option><option>En attente</option><option>Terminé</option><option>Payé</option><option>Annulé</option></select></label><div class="wide actions"><button id="createDocument" class="btn primary">＋ Créer le document</button></div></div><p class="muted small">Le numéro est attribué par le compteur commun sécurisé. Les anciens numéros sont conservés.</p></div><div class="card"><div class="section-head"><h3>Documents enregistrés</h3><button id="refreshDocuments" class="btn ghost">Actualiser</button></div><div id="documentsList" class="client-list"><p class="muted">Chargement…</p></div></div>
-<div id="documentEditor" class="card document-editor" hidden>
-  <div class="section-head"><div><p class="eyebrow">ÉDITION DU DOCUMENT</p><h3 id="editorDocTitle">Document</h3></div><button type="button" id="closeDocumentEditor" class="btn ghost">Fermer</button></div>
-  <div class="form-grid">
-    <label>Objet / description<input id="editDocSubject" maxlength="240"></label>
-    <label>Date<input id="editDocDate" type="date"></label>
-    <label>Statut<select id="editDocStatus"><option>En cours</option><option>En attente</option><option>Terminé</option><option>Payé</option><option>Annulé</option></select></label>
-    <label>Validité (jours)<input id="editDocValidity" type="number" min="0" step="1"></label>
-    <label class="wide">Date limite / échéance<input id="editDocDueDate" type="date"></label>
-  </div>
-  <h3>Prestations / matériel</h3>
-  <div class="table-wrap"><table class="items-table"><thead><tr><th>Désignation</th><th>Qté</th><th>Prix unitaire (€)</th><th>TVA %</th><th></th></tr></thead><tbody id="documentItems"></tbody></table></div>
-  <div class="actions"><button type="button" id="addDocumentItem" class="btn ghost">＋ Ajouter une ligne</button></div>
-  <div class="form-grid totals-grid">
-    <label>Remise (€)<input id="editDocDiscount" type="number" min="0" step="0.01" value="0"></label>
-    <div class="total-summary"><span>Total HT <strong id="docTotalHT">0,00 €</strong></span><span>TVA <strong id="docTotalVAT">0,00 €</strong></span><span class="grand-total">Total TTC <strong id="docTotalTTC">0,00 €</strong></span></div>
-    <label class="wide">Notes<textarea id="editDocNotes" rows="3"></textarea></label>
-  </div>
-  <div id="intakeFields" class="form-grid" hidden>
-    <h3 class="wide">Informations de prise en charge</h3>
-    <label>Type de matériel<input id="intakeMaterial"></label><label>Modèle<input id="intakeModel"></label>
-    <label>Numéro de série<input id="intakeSerial"></label><label>Accessoires<input id="intakeAccessories"></label>
-    <label class="wide">Panne signalée<textarea id="intakeFault" rows="2"></textarea></label>
-    <label class="wide">État du matériel<textarea id="intakeCondition" rows="2"></textarea></label>
-    <label class="wide">Conditions<textarea id="intakeTerms" rows="3"></textarea></label>
-  </div>
-  <div class="actions"><button type="button" id="saveDocument" class="btn primary">Enregistrer les modifications</button><button type="button" id="printDocument" class="btn ghost">Imprimer / PDF</button></div>
-  <p class="muted small">Les modifications sont enregistrées dans Supabase. L'impression ouvre la boîte de dialogue du navigateur : choisis « Enregistrer au format PDF » pour créer un PDF.</p>
+
+<section id="v-clients" class="view" hidden>
+ <div class="sec-head"><h2>Clients</h2><button class="btn primary sm" data-act="newClient">＋ Nouveau</button></div>
+ <input id="clientSearch" class="search" type="search" placeholder="Rechercher un nom, téléphone, e-mail…" autocomplete="off">
+ <div id="clientList" class="list"></div>
+</section>
+
+<section id="v-loyalty" class="view" hidden>
+ <div class="sec-head"><h2>Fidélité</h2><span class="muted small">10 passages = 1 cadeau</span></div>
+ <input id="loyaltySearch" class="search" type="search" placeholder="Qui vient de passer ?" autocomplete="off">
+ <div id="loyaltyList" class="list"></div>
+</section>
+
+<section id="v-docs" class="view" hidden>
+ <div class="sec-head"><h2>Documents</h2><button class="btn primary sm" data-newdoc="quote">＋ Nouveau</button></div>
+ <div class="chips" id="docChips"><button class="chip on" data-f="all">Tous</button><button class="chip" data-f="quote">Devis</button><button class="chip" data-f="invoice">Factures</button><button class="chip" data-f="intake">Prises en charge</button></div>
+ <input id="docSearch" class="search" type="search" placeholder="Rechercher un numéro, client, objet…" autocomplete="off">
+ <div id="docList" class="list"></div>
+</section>
+
+<section id="v-settings" class="view" hidden>
+ <div class="sec-head"><h2>Réglages</h2></div>
+ <form id="settingsForm" class="card form">
+  <label>Nom commercial<input id="settingBusinessName" value="So Info"></label>
+  <label>E-mail<input id="settingEmail" type="email"></label>
+  <label>Statut juridique<input id="settingLegalStatus" value="Micro-entreprise"></label>
+  <label>TVA<select id="settingVatMode"><option value="exempt">Franchise en base</option><option value="standard">TVA applicable</option></select></label>
+  <label>Conditions de règlement<textarea id="settingPaymentTerms" rows="3"></textarea></label>
+  <button class="btn primary full">Enregistrer</button>
+ </form>
+ <p class="muted small center">Connecté : <span id="adminEmail"></span></p>
+ <button id="logout2" class="btn ghost full">Se déconnecter</button>
+</section>
+</main>
+<footer class="foot">SO INFO · Espace privé</footer>
 </div>
-<div id="documentPrintArea" class="print-area" aria-hidden="true"></div></section>
-<section id="view-settings" class="view" hidden><div class="card"><h2>Réglages de l'entreprise</h2><p class="muted">Ces paramètres sont enregistrés dans Supabase et partagés entre tes appareils.</p><p id="adminEmail"></p><form id="settingsForm" class="form-grid"><label>Nom commercial<input id="settingBusinessName" value="So Info"></label><label>Adresse e-mail<input id="settingEmail" type="email"></label><label>Statut juridique<input id="settingLegalStatus" value="Micro-entreprise"></label><label>TVA<select id="settingVatMode"><option value="exempt">Franchise en base</option><option value="standard">TVA applicable</option></select></label><label class="wide">Conditions de règlement<textarea id="settingPaymentTerms" rows="3"></textarea></label><div class="wide actions"><button class="btn primary">Enregistrer les réglages</button></div></form></div></section>
-<p id="appMessage" class="message" role="status" aria-live="polite"></p></section>
-<footer>SO INFO · Espace privé · Espace de gestion</footer></main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script src="app.js"></script></body></html>
+
+<nav id="nav" class="nav" hidden aria-label="Navigation">
+ <button class="tab on" data-view="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Accueil</span></button>
+ <button class="tab" data-view="clients"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.3c2.2.6 3.5 2.4 3.5 5.7"/></svg><span>Clients</span></button>
+ <button class="tab" data-view="loyalty"><svg viewBox="0 0 24 24"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.2 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/></svg><span>Fidélité</span></button>
+ <button class="tab" data-view="docs"><svg viewBox="0 0 24 24"><path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg><span>Documents</span></button>
+ <button class="tab" data-view="settings"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>Réglages</span></button>
+</nav>
+
+<dialog id="clientDlg"><div class="sheet">
+ <div class="sheet-head"><h3 id="clientTitle">Client</h3><button class="icon-btn" data-close aria-label="Fermer">✕</button></div>
+ <div id="clientLoyalty" class="loy" hidden></div>
+ <form id="clientForm" class="grid2">
+  <input type="hidden" id="clientId">
+  <label>Prénom<input id="firstName" required maxlength="100"></label><label>Nom<input id="lastName" required maxlength="100"></label>
+  <label>Téléphone<input id="phone" type="tel"></label><label>E-mail<input id="clientEmail" type="email"></label>
+  <label class="w">Société<input id="company" maxlength="160"></label>
+  <label class="w">Adresse<input id="address"></label>
+  <label>Code postal<input id="postcode" inputmode="numeric"></label><label>Ville<input id="city"></label>
+  <label class="w">Notes<textarea id="notes" rows="2"></textarea></label>
+  <button class="btn primary w">Enregistrer</button>
+ </form>
+ <div id="clientDocsBox" hidden><div class="sec-head"><h3>Documents du client</h3></div><div class="chips"><button class="chip" data-cdoc="intake">＋ Prise en charge</button><button class="chip" data-cdoc="quote">＋ Devis</button><button class="chip" data-cdoc="invoice">＋ Facture</button></div><div id="clientDocs" class="list"></div></div>
+ <details id="histBox" hidden><summary>Historique des passages</summary><ul id="stampHistory" class="history"></ul></details>
+</div></dialog>
+
+<dialog id="newDocDlg"><div class="sheet">
+ <div class="sheet-head"><h3>Nouveau document</h3><button class="icon-btn" data-close aria-label="Fermer">✕</button></div>
+ <div class="seg" id="ndSeg"><button type="button" data-t="quote">Devis</button><button type="button" data-t="invoice">Facture</button><button type="button" data-t="intake">Prise en charge</button></div>
+ <label>Client<select id="ndCustomer"></select></label>
+ <label>Objet<input id="ndSubject" maxlength="240" placeholder="Ex. Diagnostic ordinateur portable"></label>
+ <button id="ndCreate" class="btn primary full">Créer et ouvrir</button>
+</div></dialog>
+
+<dialog id="docDlg" class="big"><div class="sheet">
+ <div class="sheet-head"><h3 id="editorDocTitle">Document</h3><button class="icon-btn" id="closeDocumentEditor" aria-label="Fermer">✕</button></div>
+ <div class="grid2">
+  <label class="w">Objet<input id="editDocSubject" maxlength="240"></label>
+  <label>Date<input id="editDocDate" type="date"></label><label>Statut<select id="editDocStatus"><option>En cours</option><option>En attente</option><option>Terminé</option><option>Payé</option><option>Annulé</option></select></label>
+  <label>Validité (jours)<input id="editDocValidity" type="number" min="0" step="1"></label><label>Échéance<input id="editDocDueDate" type="date"></label>
+ </div>
+ <div id="intakeFields" class="grid2" hidden>
+  <h4 class="w">Matériel confié</h4>
+  <label>Type<input id="intakeMaterial"></label><label>Modèle<input id="intakeModel"></label><label>N° de série<input id="intakeSerial"></label><label>Accessoires<input id="intakeAccessories"></label>
+  <label class="w">Panne signalée<textarea id="intakeFault" rows="2"></textarea></label><label class="w">État du matériel<textarea id="intakeCondition" rows="2"></textarea></label><label class="w">Conditions<textarea id="intakeTerms" rows="3"></textarea></label>
+ </div>
+ <h4>Prestations / matériel</h4>
+ <div id="documentItems" class="items"></div>
+ <button type="button" id="addDocumentItem" class="btn ghost full">＋ Ajouter une ligne</button>
+ <div class="grid2"><label>Remise (€)<input id="editDocDiscount" type="number" min="0" step="0.01" value="0"></label><label class="w">Notes<textarea id="editDocNotes" rows="2"></textarea></label></div>
+ <div class="sticky"><div class="tot"><span>HT <b id="docTotalHT">0,00 €</b></span><span>TVA <b id="docTotalVAT">0,00 €</b></span><span class="ttc">TTC <b id="docTotalTTC">0,00 €</b></span></div><div class="row2"><button type="button" id="printDocument" class="btn ghost">Imprimer / PDF</button><button type="button" id="saveDocument" class="btn primary">Enregistrer</button></div></div>
+</div></dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script src="app.js"></script>
+</body></html>
