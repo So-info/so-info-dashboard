@@ -2,7 +2,7 @@
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0a0a09"><meta name="robots" content="noindex"><title>SO INFO · Gestion</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="dashboard.css?v=6"><link rel="stylesheet" href="print.css?v=6"></head>
+<link rel="stylesheet" href="dashboard.css?v=7"><link rel="stylesheet" href="print.css?v=7"></head>
 <body>
 <div id="app" class="app">
 <header class="top"><a class="brand" href="#home"><span class="logo">S</span><span><b>SO INFO</b><small>Gestion</small></span></a><button id="logout" class="icon-btn" hidden aria-label="Déconnexion" title="Déconnexion"><svg viewBox="0 0 24 24"><path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/></svg></button></header>
@@ -106,7 +106,9 @@
 <dialog id="newDocDlg"><div class="sheet">
  <div class="sheet-head"><h3>Nouveau document</h3><button class="icon-btn" data-close aria-label="Fermer">✕</button></div>
  <div class="seg" id="ndSeg"><button type="button" data-t="quote">Devis</button><button type="button" data-t="invoice">Facture</button><button type="button" data-t="intake">Prise en charge</button></div>
- <label>Client<select id="ndCustomer"></select></label>
+ <label>Client<input id="ndSearch" type="search" placeholder="Rechercher un client ou en créer un…" autocomplete="off"></label>
+ <div id="ndResults" class="pick"></div>
+ <div id="ndNew" class="grid2 newc" hidden><label>Prénom<input id="nFirst" maxlength="100" autocomplete="off" autocapitalize="words"></label><label>Nom<input id="nLast" maxlength="100" autocomplete="off" autocapitalize="words"></label><label class="w">Téléphone (facultatif)<input id="nPhone" type="tel" inputmode="tel" autocomplete="off"></label></div>
  <label>Objet<input id="ndSubject" maxlength="240" placeholder="Ex. Diagnostic ordinateur portable"></label>
  <button id="ndCreate" class="btn primary full">Créer et ouvrir</button>
 </div></dialog>
@@ -131,5 +133,5 @@
 </div></dialog>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script src="dashboard.js?v=6"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script src="dashboard.js?v=7"></script>
 </body></html>

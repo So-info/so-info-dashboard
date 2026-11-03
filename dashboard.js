@@ -109,18 +109,45 @@ $('clientForm').onsubmit=async e=>{
 };
 
 /* ---------- Nouveau document ---------- */
+let ndSel=null,ndNewMode=false;
 function setSeg(){document.querySelectorAll('#ndSeg button').forEach(b=>b.classList.toggle('on',b.dataset.t===ndType))}
 document.querySelectorAll('#ndSeg button').forEach(b=>b.onclick=()=>{ndType=b.dataset.t;setSeg()});
+function ndRender(){
+ if(ndSel)return;const raw=$('ndSearch').value.trim(),q=norm(raw);
+ const rows=customers.filter(c=>norm(`${c.first_name||''} ${c.last_name||''} ${c.phone||''} ${c.company||''}`).includes(q)).slice(0,40);
+ $('ndResults').innerHTML=`<button type="button" class="pick-new" data-newc>＋ Nouveau client${raw?` « ${esc(raw)} »`:''}</button>`+rows.map(c=>`<button type="button" class="row" data-pick="${c.id}"><span class="av">${esc(initials(c))}</span><span class="grow"><b>${esc(fullName(c))}</b><small>${esc(c.company||c.phone||'')}</small></span></button>`).join('');
+ $('ndResults').hidden=false;
+}
+function ndChoose(id){const c=customers.find(x=>x.id===id);if(!c)return;ndSel=id;ndNewMode=false;$('ndSearch').value=fullName(c);$('ndSearch').classList.add('chosen');$('ndResults').hidden=true;$('ndNew').hidden=true}
+function ndNewClient(){
+ const t=$('ndSearch').value.trim(),[f,...r]=t.split(/\s+/),cap=s=>s?s[0].toLocaleUpperCase('fr')+s.slice(1):'';
+ $('nFirst').value=cap(f||'');$('nLast').value=cap(r.join(' '));$('nPhone').value='';ndSel=null;ndNewMode=true;
+ $('ndResults').hidden=true;$('ndNew').hidden=false;($('nFirst').value?($('nLast').value?$('nPhone'):$('nLast')):$('nFirst')).focus();
+}
+$('ndSearch').addEventListener('input',()=>{ndSel=null;ndNewMode=false;$('ndNew').hidden=true;$('ndSearch').classList.remove('chosen');ndRender()});
+$('ndSearch').addEventListener('focus',()=>{if(ndSel)$('ndSearch').select();else if(!ndNewMode)ndRender()});
 function openNewDoc(type,customerId){
- ndType=type||'quote';setSeg();
- $('ndCustomer').innerHTML='<option value="">Choisir un client…</option>'+customers.map(c=>`<option value="${c.id}">${esc(fullName(c))}</option>`).join('');
- $('ndCustomer').value=customerId||'';$('ndSubject').value='';
+ ndType=type||'quote';setSeg();ndSel=null;ndNewMode=false;
+ $('ndSearch').value='';$('ndSearch').classList.remove('chosen');$('ndNew').hidden=true;
  if($('clientDlg').open)$('clientDlg').close();$('newDocDlg').showModal();
+ if(customerId)ndChoose(customerId);else ndRender();
 }
 $('ndCreate').onclick=async()=>{
- const customer_id=$('ndCustomer').value||null;if(!customer_id){toast('Choisis un client.',1);return}
  $('ndCreate').disabled=true;
  try{
+  let customer_id=ndSel;
+  if(ndNewMode){
+   const first=$('nFirst').value.trim(),last=$('nLast').value.trim(),phone=$('nPhone').value.trim();
+   if(!first||!last){toast('Renseigne le prénom et le nom du nouveau client.',1);return}
+   const digits=s=>String(s||'').replace(/\D/g,''),dup=digits(phone).length>=6&&customers.find(c=>digits(c.phone)===digits(phone));
+   if(dup){customer_id=dup.id;toast(`Ce numéro existe déjà : ${fullName(dup)}`)}
+   else{
+    const r=await db.from('customers').insert({first_name:first,last_name:last,phone:phone||null}).select('id').single();if(r.error)throw r.error;
+    const k=await db.from('loyalty_cards').insert({customer_id:r.data.id});if(k.error&&!/duplicate|unique/i.test(k.error.message))throw k.error;
+    customer_id=r.data.id;await load();
+   }
+  }
+  if(!customer_id){toast('Choisis un client dans la liste ou crée-en un.',1);return}
   const {data:number,error:ne}=await db.rpc('next_management_document_number',{p_type:ndType});if(ne)throw ne;
   const row={id:crypto.randomUUID(),type:ndType,number,customer_id,document_date:new Date().toISOString().slice(0,10),subject:$('ndSubject').value.trim(),status:'En cours',validity:30,due_date:'',payload:{items:[],discount:0,notes:''},issued:false};
   const {error}=await db.from('management_documents').insert(row);if(error)throw error;
@@ -196,6 +223,8 @@ $('settingsForm').onsubmit=async e=>{e.preventDefault();const settings={business
 /* ---------- Clics ---------- */
 document.addEventListener('click',e=>{
  const t=e.target;if(t.closest('[data-stop]'))return;let el;
+ if(el=t.closest('[data-pick]'))return ndChoose(el.dataset.pick);
+ if(t.closest('[data-newc]'))return ndNewClient();
  if(el=t.closest('[data-stamp]'))return stamp(el.dataset.stamp);
  if(el=t.closest('[data-redeem]'))return redeem(el.dataset.redeem);
  if(el=t.closest('[data-doc]'))return openDocument(el.dataset.doc);

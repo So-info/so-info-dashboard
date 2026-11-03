@@ -96,3 +96,8 @@ html,body{max-width:100%;overflow-x:clip}
 .app{overflow-x:clip}.view>*,.stats>*,.actions-grid>*,.list>*,.grid2>*,.item>*,.row>*{min-width:0}.sheet{overflow-x:hidden}
 
 .chk{display:flex;align-items:center;gap:10px;margin-top:16px;font-size:.9rem;font-weight:600}.chk input{width:22px;height:22px;min-height:0;margin:0;flex:none;accent-color:var(--y)}
+
+.pick{display:flex;flex-direction:column;gap:6px;margin-top:8px;max-height:min(260px,34dvh);overflow-y:auto;overscroll-behavior:contain}
+.pick .row{padding:9px 12px}.pick-new{min-height:46px;border:1px dashed var(--y);border-radius:14px;background:#ffd00012;color:var(--y);font-weight:800;text-align:left;padding:0 14px}
+#ndSearch.chosen{border-color:var(--ok);background:#0f1a12;font-weight:700}
+.newc{margin-top:6px;padding:4px 14px 14px;border:1px solid #5a4a1a;border-radius:16px;background:#17140a}
