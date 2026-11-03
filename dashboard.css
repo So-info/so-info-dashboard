@@ -94,3 +94,5 @@ dialog[open]{animation:up .25s cubic-bezier(.2,.8,.2,1);display:flex;flex-direct
 
 html,body{max-width:100%;overflow-x:clip}
 .app{overflow-x:clip}.view>*,.stats>*,.actions-grid>*,.list>*,.grid2>*,.item>*,.row>*{min-width:0}.sheet{overflow-x:hidden}
+
+.chk{display:flex;align-items:center;gap:10px;margin-top:16px;font-size:.9rem;font-weight:600}.chk input{width:22px;height:22px;min-height:0;margin:0;flex:none;accent-color:var(--y)}

@@ -2,7 +2,7 @@
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0a0a09"><meta name="robots" content="noindex"><title>SO INFO · Gestion</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="dashboard.css?v=5"><link rel="stylesheet" href="print.css?v=5"></head>
+<link rel="stylesheet" href="dashboard.css?v=6"><link rel="stylesheet" href="print.css?v=6"></head>
 <body>
 <div id="app" class="app">
 <header class="top"><a class="brand" href="#home"><span class="logo">S</span><span><b>SO INFO</b><small>Gestion</small></span></a><button id="logout" class="icon-btn" hidden aria-label="Déconnexion" title="Déconnexion"><svg viewBox="0 0 24 24"><path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/></svg></button></header>
@@ -21,7 +21,7 @@
  </div>
  <div class="actions-grid">
   <button class="act primary wide" data-act="quickStamp"><svg viewBox="0 0 24 24"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.2 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/></svg>Ajouter un passage fidélité</button>
-  <button class="act" data-act="newClient"><svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.5"/><path d="M3 20c0-3.6 3-6 7-6M18 8v6M15 11h6"/></svg>Nouveau client</button>
+  <button class="act" data-act="quickLoyalty"><svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.5"/><path d="M3 20c0-3.6 3-6 7-6M18 8v6M15 11h6"/></svg>Nouveau client fidélité</button>
   <button class="act" data-newdoc="intake"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Prise en charge</button>
   <button class="act" data-newdoc="quote"><svg viewBox="0 0 24 24"><path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>Nouveau devis</button>
   <button class="act" data-newdoc="invoice"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></svg>Nouvelle facture</button>
@@ -38,7 +38,7 @@
 </section>
 
 <section id="v-loyalty" class="view" hidden>
- <div class="sec-head"><h2>Fidélité</h2><span class="muted small">10 passages = 1 cadeau</span></div>
+ <div class="sec-head"><h2>Fidélité</h2><button class="btn primary sm" data-act="quickLoyalty">＋ Nouveau client</button></div>
  <input id="loyaltySearch" class="search" type="search" placeholder="Qui vient de passer ?" autocomplete="off">
  <div id="loyaltyList" class="list"></div>
 </section>
@@ -92,6 +92,17 @@
  <details id="histBox" hidden><summary>Historique des passages</summary><ul id="stampHistory" class="history"></ul></details>
 </div></dialog>
 
+<dialog id="quickDlg"><div class="sheet">
+ <div class="sheet-head"><h3>Nouveau client fidélité</h3><button class="icon-btn" data-close aria-label="Fermer">✕</button></div>
+ <p class="muted small" style="margin:0">La fiche client et la carte de fidélité sont créées en une fois.</p>
+ <form id="quickForm" class="grid2">
+  <label>Prénom<input id="qFirst" required maxlength="100" autocomplete="off" autocapitalize="words"></label><label>Nom<input id="qLast" required maxlength="100" autocomplete="off" autocapitalize="words"></label>
+  <label class="w">Téléphone (facultatif)<input id="qPhone" type="tel" inputmode="tel" autocomplete="off"></label>
+  <label class="w chk"><input id="qStamp" type="checkbox" checked> Ajouter le 1er passage tout de suite</label>
+  <button class="btn primary w" id="qSubmit">Créer la carte</button>
+ </form>
+</div></dialog>
+
 <dialog id="newDocDlg"><div class="sheet">
  <div class="sheet-head"><h3>Nouveau document</h3><button class="icon-btn" data-close aria-label="Fermer">✕</button></div>
  <div class="seg" id="ndSeg"><button type="button" data-t="quote">Devis</button><button type="button" data-t="invoice">Facture</button><button type="button" data-t="intake">Prise en charge</button></div>
@@ -120,5 +131,5 @@
 </div></dialog>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script src="dashboard.js?v=5"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script src="dashboard.js?v=6"></script>
 </body></html>

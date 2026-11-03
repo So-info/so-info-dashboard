@@ -53,7 +53,7 @@ function renderClients(){
 function renderLoyalty(){
  const q=norm($('loyaltySearch').value.trim());
  const rows=customers.filter(c=>cardOf(c)&&norm(fullName(c)+' '+(c.phone||'')).includes(q)).sort((a,b)=>((cardOf(b).points>=10)-(cardOf(a).points>=10)));
- $('loyaltyList').innerHTML=rows.map(c=>{const card=cardOf(c),n=Math.min(10,card.points||0);return `<div class="row"><span class="av">${esc(initials(c))}</span><span class="grow" data-client="${c.id}"><b>${esc(fullName(c))}</b><small>${n>=10?'Cadeau disponible':`${n} / 10 · encore ${10-n}`}</small><div class="prog"><i style="width:${n*10}%"></i></div></span><button class="stampbtn ${n>=10?'gift':''}" ${n>=10?`data-redeem="${card.id}">🎁 Remettre`:`data-stamp="${card.id}">＋1`}</button></div>`}).join('')||empty('Aucun client avec carte.');
+ $('loyaltyList').innerHTML=rows.map(c=>{const card=cardOf(c),n=Math.min(10,card.points||0);return `<div class="row"><span class="av">${esc(initials(c))}</span><span class="grow" data-client="${c.id}"><b>${esc(fullName(c))}</b><small>${n>=10?'Cadeau disponible':`${n} / 10 · encore ${10-n}`}</small><div class="prog"><i style="width:${n*10}%"></i></div></span><button class="stampbtn ${n>=10?'gift':''}" ${n>=10?`data-redeem="${card.id}">🎁 Remettre`:`data-stamp="${card.id}">＋1`}</button></div>`}).join('')||(ready&&q?`<div class="empty">Aucun résultat.<br><button class="btn primary sm" style="margin-top:12px" data-act="quickLoyalty">＋ Créer « ${esc($('loyaltySearch').value.trim())} »</button></div>`:empty('Aucun client avec carte.'));
 }
 function renderDocs(){
  const q=norm($('docSearch').value.trim());
@@ -165,6 +165,30 @@ $('saveDocument').onclick=async()=>{
  catch(e){toast('Enregistrement impossible : '+e.message,1)}finally{$('saveDocument').disabled=false}
 };
 
+
+/* ---------- Création rapide fidélité ---------- */
+function openQuick(){
+ const t=!$('v-loyalty').hidden?$('loyaltySearch').value.trim():'';
+ const cap=s=>s?s[0].toLocaleUpperCase('fr')+s.slice(1):'';
+ const [f,...r]=t.split(/\s+/);
+ $('qFirst').value=cap(f||'');$('qLast').value=cap(r.join(' '));$('qPhone').value='';$('qStamp').checked=true;$('qSubmit').disabled=false;
+ $('quickDlg').showModal();(t?($('qLast').value?$('qPhone'):$('qLast')):$('qFirst')).focus();
+}
+$('quickForm').onsubmit=async e=>{
+ e.preventDefault();
+ const digits=s=>String(s||'').replace(/\D/g,''),phone=$('qPhone').value.trim();
+ const dup=digits(phone).length>=6&&customers.find(c=>digits(c.phone)===digits(phone));
+ if(dup){$('quickDlg').close();toast(`Ce numéro existe déjà : ${fullName(dup)}`,1);openClient(dup.id);return}
+ $('qSubmit').disabled=true;
+ try{
+  const r=await db.from('customers').insert({first_name:$('qFirst').value.trim(),last_name:$('qLast').value.trim(),phone:phone||null}).select('id').single();if(r.error)throw r.error;
+  const k=await db.from('loyalty_cards').insert({customer_id:r.data.id}).select('id').single();if(k.error)throw k.error;
+  let msg='Carte de fidélité créée.';
+  if($('qStamp').checked){const s=await db.rpc('add_stamp',{p_card_id:k.data.id});if(s.error)toast('Carte créée, mais le tampon a échoué : '+s.error.message,1);else msg='Carte créée · 1er passage ajouté.'}
+  await load();$('loyaltySearch').value='';renderAll();$('quickDlg').close();switchView('loyalty');toast(msg);
+ }catch(err){toast('Création impossible : '+err.message,1);$('qSubmit').disabled=false}
+};
+
 /* ---------- Réglages ---------- */
 async function loadSettings(){const {data,error}=await db.from('management_settings').select('settings').eq('id',1).maybeSingle();if(error){toast('Réglages : '+error.message,1);return}const s=data?.settings||{};setVal('settingBusinessName',s.businessName||'So Info');setVal('settingEmail',s.email||'');setVal('settingLegalStatus',s.legalStatus||'Micro-entreprise');setVal('settingVatMode',s.vatMode||'exempt');setVal('settingPaymentTerms',s.paymentTerms||'')}
 $('settingsForm').onsubmit=async e=>{e.preventDefault();const settings={businessName:$('settingBusinessName').value.trim(),email:$('settingEmail').value.trim(),legalStatus:$('settingLegalStatus').value.trim(),vatMode:$('settingVatMode').value,paymentTerms:$('settingPaymentTerms').value.trim()};const {error}=await db.from('management_settings').upsert({id:1,settings,updated_at:new Date().toISOString()});error?toast('Enregistrement impossible : '+error.message,1):toast('Réglages enregistrés.')};
@@ -178,7 +202,7 @@ document.addEventListener('click',e=>{
  if(el=t.closest('[data-client]'))return openClient(el.dataset.client);
  if(el=t.closest('[data-newdoc]'))return openNewDoc(el.dataset.newdoc);
  if(el=t.closest('[data-cdoc]'))return openNewDoc(el.dataset.cdoc,$('clientId').value);
- if(el=t.closest('[data-act]')){if(el.dataset.act==='newClient')openClient(null);else{switchView('loyalty');$('loyaltySearch').focus()}return}
+ if(el=t.closest('[data-act]')){const a=el.dataset.act;if(a==='newClient')openClient(null);else if(a==='quickLoyalty')openQuick();else{switchView('loyalty');$('loyaltySearch').focus()}return}
  if(el=t.closest('[data-view]')){switchView(el.dataset.view);if(el.dataset.filter)setFilter(el.dataset.filter);return}
  if(el=t.closest('[data-close]'))return el.closest('dialog').close();
  if(el=t.closest('[data-f]'))setFilter(el.dataset.f);
